@@ -148,10 +148,10 @@ public:
 		fieldStone.stone[tx][ty - 1] = eFC_White;
 		SetNextStone();
 		endF = false;
-	};
+	}
 	void Update()override {
 		
-	};
+	}
 	void Draw()override {
 		DrawBox(0, 0, MFS_WIDTH, MFS_HEIGHT, MC_GREEN, 1);
 		for (int i = 0; i <= MFS_XSIZE; ++i) {
@@ -165,7 +165,7 @@ public:
 				DrawStone(i, j, fieldStone);
 			}
 		}
-	};
+	}
 
 	//呼び出されたとき、置かれた位置に次の盤面候補があるか調べる
 	//もしあればそれを呼び出して次のターンへ
@@ -205,19 +205,22 @@ public:
 	void Initialize() override {
 		fx = 0;
 		fy = 0;
-	};
+	}
 	void Update()override {
 		if (*turnPlayer == myColor) {
 			if (SetPosition()) {
 				field->SetStone(fx, fy);
 			}
 		}
-	};
+	}
 	void Draw() override {
-		int tx = fx * MFS_UNIT + MFS_UNIT / 2;
-		int ty = fy * MFS_UNIT + MFS_UNIT / 2;
-		DrawCircle(tx, ty, MFS_UNIT / 3, MC_BLUE, 1);
-	};
+		if (*turnPlayer == myColor) {
+			int tx = fx * MFS_UNIT + MFS_UNIT / 2;
+			int ty = fy * MFS_UNIT + MFS_UNIT / 2;
+			DrawCircle(tx, ty, MFS_UNIT / 3, MC_BLUE, 1);
+		}
+	}
+	
 };
 
 class PlayerHuman :public BasePlayer {
@@ -232,6 +235,10 @@ class PlayerHuman :public BasePlayer {
 			return true;
 		}
 		return false;
+	}
+public:
+	PlayerHuman(Field *field, eFieldColor *turnPlayer, eFieldColor myColor) :BasePlayer(field, turnPlayer, myColor) {
+	
 	}
 };
 
@@ -262,6 +269,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	vector<BaseClass*> objects;
 	Field field(&turnPlayer);
 	objects.push_back(&field);
+
+	PlayerHuman player1(&field, &turnPlayer, eFC_Black);
+	objects.push_back(&player1);
+
+	PlayerHuman player2(&field, &turnPlayer, eFC_White);
+	objects.push_back(&player2);
+
 
 	for (int i = 0; i < objects.size(); ++i) {
 		objects[i]->Initialize();
