@@ -4,9 +4,11 @@
 #include "DxLibEndEffect.h"
 #include "Between.h"
 
-#define MFS_XSIZE 8
-#define MFS_YSIZE 8
-
+constexpr int  MFS_XSIZE = 8;
+constexpr int  MFS_YSIZE = 8;
+constexpr int  MFS_WIDTH = MWS_YMAX;
+constexpr int  MFS_HEIGHT= MWS_YMAX;
+constexpr int MFS_UNIT = MFS_WIDTH / MFS_XSIZE;
 
 enum eFieldColor {
 	eFC_Black,
@@ -38,7 +40,9 @@ public:
 		stone[MFS_XSIZE][MFS_XSIZE - 1] = eFC_White;
 	};
 	void Update()override {};
-	void Draw()override {};
+	void Draw()override {
+		
+	};
 
 	void SetStone(int x,int y) {
 		
