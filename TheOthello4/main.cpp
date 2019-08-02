@@ -221,6 +221,10 @@ public:
 			}
 		}
 	}
+
+	vector<fieldstone> GetNextStones() {
+		return nextStones;
+	}
 };
 
 class BasePlayer :public BaseClass {
@@ -272,6 +276,7 @@ public:
 	
 };
 
+//マウス入力
 class PlayerHuman :public BasePlayer {
 	bool SetPosition() override {
 		int mx, my;
@@ -291,6 +296,7 @@ public:
 	}
 };
 
+//完全ランダム
 class PlayerRandom :public BasePlayer {
 	bool SetPosition() override {
 		fx = GetRand(MFS_XSIZE - 1);
@@ -317,6 +323,31 @@ public:
 		t = 0;
 	}
 };
+
+//次が最大のものを探す
+class PlayerNextMax :public BasePlayer {
+	vector<fieldstone> nextStones;
+	bool SetPosition() override {
+		nextStones = field->GetNextStones();
+		int m = -1;
+		fx = 0;
+		fy = 0;
+		for (int i = 0; i < nextStones.size(); ++i) {
+			fieldstone t = nextStones[i];
+			if (m < t.amount[myColor]) {
+				m = t.amount[myColor];
+				fx = t.x;
+				fy = t.y;
+			}
+		}
+		return true;
+	}
+public:
+	PlayerNextMax(Field *field, eFieldColor *turnPlayer, eFieldColor myColor) :BasePlayer(field, turnPlayer, myColor) {
+
+	}
+};
+
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -345,13 +376,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	Field field(&turnPlayer);
 	objects.push_back(&field);
 
-	//PlayerHuman player1(&field, &turnPlayer, eFC_Black);
+	PlayerHuman player1(&field, &turnPlayer, eFC_Black);
 	//PlayerRandom player1(&field, &turnPlayer, eFC_Black);
-	PlayerRoler player1(&field, &turnPlayer, eFC_Black);
+	//PlayerRoler player1(&field, &turnPlayer, eFC_Black);
+	//PlayerNextMax player1(&field, &turnPlayer, eFC_Black);
 
 	//PlayerHuman player2(&field, &turnPlayer, eFC_White);
 	//PlayerRandom player2(&field, &turnPlayer, eFC_White);
-	PlayerRoler player2(&field, &turnPlayer, eFC_White);
+	//PlayerRoler player2(&field, &turnPlayer, eFC_White);
+	PlayerNextMax player2(&field, &turnPlayer, eFC_White);
 
 	
 	objects.push_back(&player1);
