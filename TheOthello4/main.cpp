@@ -140,8 +140,8 @@ class Field :public BaseClass {
 				}
 			}
 			++n;
-		} while (!putF && n < 2);
-		if (n >= 2) {
+		} while (!putF && n <= 2);
+		if (n > 2) {
 			return false;
 		}
 		return true;
@@ -327,12 +327,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	Field field(&turnPlayer);
 	objects.push_back(&field);
 
-	PlayerHuman player1(&field, &turnPlayer, eFC_Black);
-	objects.push_back(&player1);
+	//PlayerHuman player1(&field, &turnPlayer, eFC_Black);
+	PlayerRandom player1(&field, &turnPlayer, eFC_Black);
 
-	PlayerHuman player2(&field, &turnPlayer, eFC_White);
+	//PlayerHuman player2(&field, &turnPlayer, eFC_White);
+	PlayerRandom player2(&field, &turnPlayer, eFC_White);
+
+	
+	objects.push_back(&player1);
 	objects.push_back(&player2);
 
+	
 
 	for (int i = 0; i < objects.size(); ++i) {
 		objects[i]->Initialize();
@@ -340,6 +345,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	while (ProcessMessage() == 0)
 	{
+		if (CheckHitKey(KEY_INPUT_R)) {
+			for (int i = 0; i < objects.size(); ++i) {
+				objects[i]->Initialize();
+			}
+		}
 		for (int i = 0; i < objects.size(); ++i) {
 			objects[i]->Update();
 			objects[i]->Draw();
