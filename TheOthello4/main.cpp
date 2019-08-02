@@ -270,7 +270,7 @@ public:
 };
 
 class PlayerHuman :public BasePlayer {
-	bool SetPosition() {
+	bool SetPosition() override {
 		int mx, my;
 		GetMousePoint(&mx, &my);
 		fx = mx / MFS_UNIT;
@@ -288,6 +288,17 @@ public:
 	}
 };
 
+class PlayerRandom :public BasePlayer {
+	bool SetPosition() override {
+		fx = GetRand(MFS_XSIZE - 1);
+		fy = GetRand(MFS_YSIZE - 1);
+		return true;
+	}
+public:
+	PlayerRandom(Field *field, eFieldColor *turnPlayer, eFieldColor myColor) :BasePlayer(field, turnPlayer, myColor) {
+
+	}
+};
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
