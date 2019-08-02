@@ -220,7 +220,20 @@ public:
 	};
 };
 
-
+class PlayerHuman :public BasePlayer {
+	bool SetPosition() {
+		int mx, my;
+		GetMousePoint(&mx, &my);
+		fx = mx / MFS_UNIT;
+		fy = my / MFS_UNIT;
+		SetBetween(0, &fx, MFS_XSIZE);
+		SetBetween(0, &fy, MFS_YSIZE);
+		if (GetMouseInput() & MOUSE_INPUT_LEFT) {
+			return true;
+		}
+		return false;
+	}
+};
 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
