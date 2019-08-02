@@ -185,18 +185,39 @@ public:
 };
 
 class BasePlayer :public BaseClass {
-	Field *_field;
+protected:
+	Field *field;
 	eFieldColor *turnPlayer;
+	eFieldColor myColor;
+	int fx, fy;
+
+	//配置場所を決めるための関数。
+	//fxとfyを書き換える。
+	//実際に置くタイミングでは返り値をtrueにする。
+	virtual bool SetPosition() = 0;
 public:
-	BasePlayer(Field *field) {
-		_field = field;
+	BasePlayer(Field *field,eFieldColor *turnPlayer,eFieldColor myColor) {
+		this->field = field;
+		this->turnPlayer = turnPlayer;
+		this->myColor = myColor;
+		Initialize();
 	}
-	void Initialize()override {
-	
+	void Initialize() override {
+		fx = 0;
+		fy = 0;
 	};
-	void Update()override {};
-	void Draw()override {};
+	void Update()override {
+		if (*turnPlayer == myColor) {
+			if (SetPosition()) {
+				field->SetStone(fx, fy);
+			}
+		}
+	};
+	void Draw() override {
+		
+	};
 };
+
 
 
 
