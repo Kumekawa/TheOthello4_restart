@@ -214,7 +214,9 @@ public:
 		}
 	};
 	void Draw() override {
-		
+		int tx = fx * MFS_UNIT + MFS_UNIT / 2;
+		int ty = fy * MFS_UNIT + MFS_UNIT / 2;
+		DrawCircle(tx, ty, MFS_UNIT / 3, MC_BLUE, 1);
 	};
 };
 
