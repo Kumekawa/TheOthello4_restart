@@ -128,6 +128,9 @@ class Field :public BaseClass {
 		nextStones.clear();
 		int n = 0;
 		do {
+			if (n > 0) {
+				ChangeFieldColor(turnPlayer);
+			}
 			for (int i = 0; i < MFS_XSIZE; ++i) {
 				for (int j = 0; j < MFS_YSIZE; ++j) {
 					fieldstone t = fieldStone;
@@ -185,7 +188,7 @@ public:
 
 		int b = fieldStone.amount[eFC_Black];
 		int w = fieldStone.amount[eFC_White];
-		DrawFormatString(MFS_WIDTH, 0, MC_WHITE, "black:%d\nwhite%d", b, w);
+		DrawFormatString(MFS_WIDTH, 0, MC_WHITE, "black:%d\nwhite%d\nPlayer:%s", b, w, *turnPlayer == eFC_Black?"black":"white");
 		if (endF) {
 			int t = b - w;
 			string s;
@@ -198,7 +201,7 @@ public:
 			else {
 				s = "引き分け";
 			}
-			DrawFormatString(MFS_WIDTH, 0, MC_WHITE, ("\n\n" + s).c_str());
+			DrawFormatString(MFS_WIDTH, 0, MC_WHITE, ("\n\n\n" + s).c_str());
 		}
 	}
 
@@ -209,7 +212,7 @@ public:
 			fieldstone f = nextStones[i];
 			if (f.x == x && f.y == y) {
 				//次の盤面がある
-				fieldStone = f;
+				fieldStone = f; 
 				ChangeFieldColor(turnPlayer);
 				if (SetNextStone() == false) {
 					endF = true;
@@ -300,6 +303,21 @@ public:
 	}
 };
 
+//左上からローラー作戦
+class PlayerRoler :public BasePlayer {
+	int t;
+	bool SetPosition() override {
+		t = (t + 1) % (MFS_XSIZE * MFS_YSIZE);
+		fx = t % MFS_XSIZE;
+		fy = t / MFS_YSIZE;
+		return true;
+	}
+public:
+	PlayerRoler(Field *field, eFieldColor *turnPlayer, eFieldColor myColor) :BasePlayer(field, turnPlayer, myColor) {
+		t = 0;
+	}
+};
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	SetOutApplicationLogValidFlag(false);//ログを出力しない
@@ -328,10 +346,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	objects.push_back(&field);
 
 	//PlayerHuman player1(&field, &turnPlayer, eFC_Black);
-	PlayerRandom player1(&field, &turnPlayer, eFC_Black);
+	//PlayerRandom player1(&field, &turnPlayer, eFC_Black);
+	PlayerRoler player1(&field, &turnPlayer, eFC_Black);
 
 	//PlayerHuman player2(&field, &turnPlayer, eFC_White);
-	PlayerRandom player2(&field, &turnPlayer, eFC_White);
+	//PlayerRandom player2(&field, &turnPlayer, eFC_White);
+	PlayerRoler player2(&field, &turnPlayer, eFC_White);
 
 	
 	objects.push_back(&player1);
@@ -346,6 +366,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	while (ProcessMessage() == 0)
 	{
 		if (CheckHitKey(KEY_INPUT_R)) {
+			turnPlayer = eFC_Black;
 			for (int i = 0; i < objects.size(); ++i) {
 				objects[i]->Initialize();
 			}
