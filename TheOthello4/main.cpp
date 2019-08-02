@@ -2,6 +2,63 @@
 #include "MacroWindowSize.h"
 #include "DxLibAlways.h"
 #include "DxLibEndEffect.h"
+#include "Between.h"
+
+#define MFS_XSIZE 8
+#define MFS_YSIZE 8
+
+
+enum eFieldColor {
+	eFC_Black,
+	eFC_White,
+	eFC_None
+};
+
+class BaseClass {
+public:
+	virtual void Initialize() = 0;
+	virtual void Update() = 0;
+	virtual void Draw() = 0;
+};
+
+class Field :public BaseClass {
+	eFieldColor stone[MFS_XSIZE][MFS_YSIZE];
+	eFieldColor *turnPlayer;
+public:
+	void Initialize()override {
+		//”Õ–ÊƒŠƒZƒbƒg
+		for (int i = 0; i < MFS_XSIZE; ++i) {
+			for (int j = 0; j < MFS_YSIZE; ++j) {
+				stone[i][j] = eFC_None;
+			}
+		}
+		stone[MFS_XSIZE - 1][MFS_XSIZE - 1] = eFC_Black;
+		stone[MFS_XSIZE][MFS_XSIZE] = eFC_Black;
+		stone[MFS_XSIZE - 1][MFS_XSIZE] = eFC_White;
+		stone[MFS_XSIZE][MFS_XSIZE - 1] = eFC_White;
+	};
+	void Update()override {};
+	void Draw()override {};
+
+	void SetStone(int x,int y) {
+		
+	}
+};
+
+class BasePlayer :public BaseClass {
+	Field *_field;
+	eFieldColor *turnPlayer;
+public:
+	BasePlayer(Field *field) {
+		_field = field;
+	}
+	void Initialize()override {
+	
+	};
+	void Update()override {};
+	void Draw()override {};
+};
+
 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
