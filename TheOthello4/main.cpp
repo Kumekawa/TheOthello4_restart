@@ -18,6 +18,19 @@ enum eFieldColor {
 	eFC_White,
 	eFC_None
 };
+void ChangeFieldColor(eFieldColor *turn) {
+	switch (*turn)
+	{
+	case eFC_Black:
+		*turn = eFC_White;
+		break;
+	case eFC_White:
+		*turn = eFC_Black;
+		break;
+	default:
+		break;
+	}
+}
 
 class BaseClass {
 public:
@@ -36,8 +49,9 @@ class Field :public BaseClass {
 	fieldstone fieldStone;
 	//次の盤面の候補を格納しておく
 	vector<fieldstone> nextStones;
-
 	eFieldColor *turnPlayer;
+	bool endF;
+
 	void DrawStone(int x, int y,fieldstone efc) {
 		int i = x * MFS_UNIT + MFS_UNIT / 2;
 		int j = y * MFS_UNIT + MFS_UNIT / 2;
@@ -90,7 +104,8 @@ class Field :public BaseClass {
 		}
 		return putF;
 	}
-	void SetNextStone() {
+	//2連続置けなかった場合、falseを返す
+	bool SetNextStone() {
 		bool putF = false;
 		//2回繰り返したら置けるところが無いのでゲーム終了
 		nextStones.clear();
@@ -109,7 +124,10 @@ class Field :public BaseClass {
 			}
 			++n;
 		} while (!putF && n < 2);
-
+		if (n >= 2) {
+			return false;
+		}
+		return true;
 	}
 public:
 	Field(eFieldColor *turnPlayer) {
@@ -129,8 +147,11 @@ public:
 		fieldStone.stone[tx - 1][ty] = eFC_White;
 		fieldStone.stone[tx][ty - 1] = eFC_White;
 		SetNextStone();
+		endF = false;
 	};
-	void Update()override {};
+	void Update()override {
+		
+	};
 	void Draw()override {
 		DrawBox(0, 0, MFS_WIDTH, MFS_HEIGHT, MC_GREEN, 1);
 		for (int i = 0; i <= MFS_XSIZE; ++i) {
@@ -149,7 +170,17 @@ public:
 	//呼び出されたとき、置かれた位置に次の盤面候補があるか調べる
 	//もしあればそれを呼び出して次のターンへ
 	void SetStone(int x,int y) {
-		
+		for (int i = 0; i < nextStones.size(); ++i) {
+			fieldstone f = nextStones[i];
+			if (f.x == x && f.y == y) {
+				//次の盤面がある
+				fieldStone = f;
+				ChangeFieldColor(turnPlayer);
+				if (SetNextStone() == false) {
+					endF = true;
+				}
+			}
+		}
 	}
 };
 
