@@ -42,7 +42,20 @@ public:
 struct fieldstone {
 	//どこに置いてこの盤面になったか
 	int x, y;
+	//実際の盤面
 	eFieldColor stone[MFS_XSIZE][MFS_YSIZE];
+	//実際にいくつずつあるか
+	int amount[3];
+	void SetAmount() {
+		for (int i = 0; i < 3; ++i) {
+			amount[i] = 0;
+		}
+		for (int i = 0; i < MFS_XSIZE; ++i) {
+			for (int j = 0; j < MFS_YSIZE; ++j) {
+				amount[stone[i][j]]++;
+			}
+		}
+	}
 };
 
 class Field :public BaseClass {
@@ -66,6 +79,10 @@ class Field :public BaseClass {
 
 	//指定点に置けるか調べ、置けるなら置く。置けたらtrueを返す
 	bool SetNextStonePoint(fieldstone *s,int x,int y) {
+		//指定点に石があれば置けないので終了
+		if (s->stone[x][y] != eFC_None) {
+			return false;
+		}
 		bool putF = false;
 		for (int i = -1; i < 2; ++i) {
 			for (int j = -1; j < 2; ++j) {
@@ -165,6 +182,24 @@ public:
 				DrawStone(i, j, fieldStone);
 			}
 		}
+
+		int b = fieldStone.amount[eFC_Black];
+		int w = fieldStone.amount[eFC_White];
+		DrawFormatString(MFS_WIDTH, 0, MC_WHITE, "black:%d\nwhite%d", b, w);
+		if (endF) {
+			int t = b - w;
+			string s;
+			if (t > 0) {
+				s = "黒の勝ち！";
+			}
+			else if(t < 0){
+				s = "白の勝ち！";
+			}
+			else {
+				s = "引き分け";
+			}
+			DrawFormatString(MFS_WIDTH, 0, MC_WHITE, ("\n\n" + s).c_str());
+		}
 	}
 
 	//呼び出されたとき、置かれた位置に次の盤面候補があるか調べる
@@ -179,6 +214,7 @@ public:
 				if (SetNextStone() == false) {
 					endF = true;
 				}
+				fieldStone.SetAmount();
 			}
 		}
 	}
@@ -189,6 +225,7 @@ protected:
 	Field *field;
 	eFieldColor *turnPlayer;
 	eFieldColor myColor;
+	int myDrawColor;
 	int fx, fy;
 
 	//配置場所を決めるための関数。
@@ -205,6 +242,12 @@ public:
 	void Initialize() override {
 		fx = 0;
 		fy = 0;
+		if (myColor == eFC_Black) {
+			myDrawColor = MC_BLACK;
+		}
+		else {
+			myDrawColor = MC_WHITE;
+		}
 	}
 	void Update()override {
 		if (*turnPlayer == myColor) {
@@ -217,7 +260,10 @@ public:
 		if (*turnPlayer == myColor) {
 			int tx = fx * MFS_UNIT + MFS_UNIT / 2;
 			int ty = fy * MFS_UNIT + MFS_UNIT / 2;
-			DrawCircle(tx, ty, MFS_UNIT / 3, MC_BLUE, 1);
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
+			DrawCircle(tx, ty, MFS_UNIT / 4, myDrawColor, 1);
+			SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 128);
+			DrawCircle(tx, ty, MFS_UNIT / 4, myDrawColor, 0);
 		}
 	}
 	
