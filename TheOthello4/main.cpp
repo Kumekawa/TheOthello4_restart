@@ -26,34 +26,109 @@ public:
 	virtual void Draw() = 0;
 };
 
-class Field :public BaseClass {
+struct fieldstone {
+	//どこに置いてこの盤面になったか
+	int x, y;
 	eFieldColor stone[MFS_XSIZE][MFS_YSIZE];
+};
+
+class Field :public BaseClass {
+	fieldstone fieldStone;
+	//次の盤面の候補を格納しておく
+	vector<fieldstone> nextStones;
+
 	eFieldColor *turnPlayer;
-	void DrawStone(int x, int y,eFieldColor efc) {
+	void DrawStone(int x, int y,fieldstone efc) {
 		int i = x * MFS_UNIT + MFS_UNIT / 2;
 		int j = y * MFS_UNIT + MFS_UNIT / 2;
 		int c = MC_BLACK;
-		if (stone[x][y] != eFC_None) {
-			if (stone[x][y] == eFC_White) {
+		if (efc.stone[x][y] != eFC_None) {
+			if (efc.stone[x][y] == eFC_White) {
 				c = MC_WHITE;
 			}
 			DrawCircle(i, j, MFS_UNIT / 3, c, 1);
 		}
 	}
+
+	//指定点に置けるか調べ、置けるなら置く。置けたらtrueを返す
+	bool SetNextStonePoint(fieldstone *s,int x,int y) {
+		bool putF = false;
+		for (int i = -1; i < 2; ++i) {
+			for (int j = -1; j < 2; ++j) {
+				if (i == 0 && j == 0) {
+					continue;
+				}
+				for (int k = 1;; k++) {
+					int m = x + i * k;
+					int n = y + j * k;
+					//画面外にあったりしたら終了
+					if (CheckBetween(0, m, MFS_XSIZE) != 0) {
+						break;
+					}
+					if (CheckBetween(0, n, MFS_YSIZE) != 0) {
+						break;
+					}
+
+					//石が無ければ終了
+					if (s->stone[m][n] == eFC_None) {
+						break;
+					}
+					//ターンプレイヤーの石があったら、そこまでに非ターンプレイヤーの石があれば色を変えて終了
+					if (s->stone[m][n] == *turnPlayer) {
+						if (k > 1) {
+							for (;k >= 0;--k) {
+								int a = x + i * k;
+								int b = y + j * k;
+								s->stone[a][b] = *turnPlayer;
+							}
+							putF = true;
+						}
+						break;
+					}
+				}
+			}
+		}
+		return putF;
+	}
+	void SetNextStone() {
+		bool putF = false;
+		//2回繰り返したら置けるところが無いのでゲーム終了
+		nextStones.clear();
+		int n = 0;
+		do {
+			for (int i = 0; i < MFS_XSIZE; ++i) {
+				for (int j = 0; j < MFS_YSIZE; ++j) {
+					fieldstone t = fieldStone;
+					if (SetNextStonePoint(&t, i, j)) {
+						t.x = i;
+						t.y = j;
+						nextStones.push_back(t);
+						putF = true;
+					}
+				}
+			}
+			++n;
+		} while (!putF && n < 2);
+
+	}
 public:
+	Field(eFieldColor *turnPlayer) {
+		this->turnPlayer = turnPlayer;
+	}
 	void Initialize()override {
 		//盤面リセット
 		for (int i = 0; i < MFS_XSIZE; ++i) {
 			for (int j = 0; j < MFS_YSIZE; ++j) {
-				stone[i][j] = eFC_None;
+				fieldStone.stone[i][j] = eFC_None;
 			}
 		}
 		int tx = MFS_XSIZE / 2;
 		int ty = MFS_YSIZE / 2;
-		stone[tx - 1][ty - 1] = eFC_Black;
-		stone[tx][ty] = eFC_Black;
-		stone[tx - 1][ty] = eFC_White;
-		stone[tx][ty - 1] = eFC_White;
+		fieldStone.stone[tx - 1][ty - 1] = eFC_Black;
+		fieldStone.stone[tx][ty] = eFC_Black;
+		fieldStone.stone[tx - 1][ty] = eFC_White;
+		fieldStone.stone[tx][ty - 1] = eFC_White;
+		SetNextStone();
 	};
 	void Update()override {};
 	void Draw()override {
@@ -66,11 +141,13 @@ public:
 		}
 		for (int i = 0; i < MFS_XSIZE; ++i) {
 			for (int j = 0; j < MFS_YSIZE; ++j) {
-				DrawStone(i, j, stone[i][j]);
+				DrawStone(i, j, fieldStone);
 			}
 		}
 	};
 
+	//呼び出されたとき、置かれた位置に次の盤面候補があるか調べる
+	//もしあればそれを呼び出して次のターンへ
 	void SetStone(int x,int y) {
 		
 	}
@@ -113,8 +190,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//描画画面を裏に
 	SetDrawScreen(DX_SCREEN_BACK);
 
+	eFieldColor turnPlayer = eFC_Black;
+
 	vector<BaseClass*> objects;
-	Field field;
+	Field field(&turnPlayer);
 	objects.push_back(&field);
 
 	for (int i = 0; i < objects.size(); ++i) {
