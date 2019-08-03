@@ -56,6 +56,7 @@ struct fieldstone {
 	int amount[3];
 	//どれが一番多いか
 	eFieldColor GetMaxColor() {
+		SetAmount();
 		int t = amount[eFC_Black] - amount[eFC_White];
 		if (t > 0) {
 			return eFC_Black;
@@ -834,12 +835,22 @@ public:
 //参考:https://bassy84.net/othello-syosin.html
 class PlayerBetter :public BasePlayer {
 	//とりあえず4つに分割してみる
-	const int term[] = { 10, 20, 30};
+	int term[3] = { 10, 20, 30};
 	
 	bool SetPosition() override {
 		int turn = field->GetElapsedTurn();
 		if (turn < term[0]) {
-
+			//自分のコマが少なくなる位置に打つ
+			//http://bassy84.net/syosin-itihoukougaesi.html
+			int min = -1;
+			auto fs = field->GetNextStones();
+			for (int i = 0; i < fs.size(); ++i) {
+				if (min == -1 || min > fs[i].amount[myColor]) {
+					min = fs[i].amount[myColor];
+					fx = fs[i].x;
+					fy = fs[i].y;
+				}
+			}
 		}
 	}
 public:
@@ -847,6 +858,7 @@ public:
 
 	}
 };
+
 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
