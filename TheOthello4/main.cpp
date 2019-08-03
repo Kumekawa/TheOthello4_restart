@@ -64,6 +64,7 @@ class Field :public BaseClass {
 	vector<fieldstone> nextStones;
 	eFieldColor *turnPlayer;
 	bool endF;
+	int elapsedTurn;
 
 	void DrawStone(int x, int y,fieldstone efc) {
 		int i = x * MFS_UNIT + MFS_UNIT / 2;
@@ -168,6 +169,7 @@ public:
 		fieldStone.stone[tx][ty - 1] = eFC_White;
 		SetNextStone();
 		endF = false;
+		elapsedTurn = 0;
 	}
 	void Update()override {
 		
@@ -188,7 +190,7 @@ public:
 
 		int b = fieldStone.amount[eFC_Black];
 		int w = fieldStone.amount[eFC_White];
-		DrawFormatString(MFS_WIDTH, 0, MC_WHITE, "black:%d\nwhite%d\nPlayer:%s", b, w, *turnPlayer == eFC_Black?"black":"white");
+		DrawFormatString(MFS_WIDTH, 0, MC_WHITE, "\nblack:%d\nwhite%d\nturn:%d\nPlayer:%s", b, w, elapsedTurn,*turnPlayer == eFC_Black?"black":"white");
 		if (endF) {
 			int t = b - w;
 			string s;
@@ -201,7 +203,7 @@ public:
 			else {
 				s = "引き分け";
 			}
-			DrawFormatString(MFS_WIDTH, 0, MC_WHITE, ("\n\n\n" + s).c_str());
+			DrawFormatString(MFS_WIDTH, 0, MC_WHITE, (s).c_str());
 		}
 	}
 
@@ -211,19 +213,35 @@ public:
 		for (int i = 0; i < nextStones.size(); ++i) {
 			fieldstone f = nextStones[i];
 			if (f.x == x && f.y == y) {
-				//次の盤面がある
+				//ここにきていれば次の盤面がある
 				fieldStone = f; 
 				ChangeFieldColor(turnPlayer);
 				if (SetNextStone() == false) {
 					endF = true;
 				}
 				fieldStone.SetAmount();
+				++elapsedTurn;
+				break;
 			}
 		}
 	}
 
 	vector<fieldstone> GetNextStones() {
 		return nextStones;
+	}
+	void SetFieldStone(fieldstone fieldStone) {
+		this->fieldStone = fieldStone;
+		//ターンプレイヤーは書き換えない
+		if (SetNextStone() == false) {
+			endF = true;
+		}
+		fieldStone.SetAmount();
+	}
+	fieldstone GetFieldStone() {
+		return fieldStone;
+	}
+	int GetElapsedTurn() {
+		return elapsedTurn;
 	}
 };
 
@@ -355,6 +373,23 @@ public:
 	}
 };
 
+//minmax方に基づいて配置する。とりあえず2段階
+class PlayerMinMax :public BasePlayer {
+	bool SetPosition() override {
+		//仮想環境を作り、自分の手番が最大になるように選ぶ
+		eFieldColor _turnPlayer = myColor;
+		Field _field(&_turnPlayer);
+		PlayerNextMax Player1(&_field, &_turnPlayer, myColor);
+		PlayerNextMax Player2(&_field, &_turnPlayer, myColor);
+
+		return false;
+	}
+public:
+	PlayerMinMax(Field *field, eFieldColor *turnPlayer, eFieldColor myColor) :BasePlayer(field, turnPlayer, myColor) {
+	
+	}
+};
+
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -383,8 +418,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	Field field(&turnPlayer);
 	objects.push_back(&field);
 
-	//PlayerHuman player1(&field, &turnPlayer, eFC_Black);
-	PlayerRandom player1(&field, &turnPlayer, eFC_Black);
+	PlayerHuman player1(&field, &turnPlayer, eFC_Black);
+	//PlayerRandom player1(&field, &turnPlayer, eFC_Black);
 	//PlayerRoler player1(&field, &turnPlayer, eFC_Black);
 	//PlayerNextMax player1(&field, &turnPlayer, eFC_Black);
 
@@ -392,6 +427,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	PlayerRandom player2(&field, &turnPlayer, eFC_White);
 	//PlayerRoler player2(&field, &turnPlayer, eFC_White);
 	//PlayerNextMax player2(&field, &turnPlayer, eFC_White);
+	//PlayerMinMax player2(&field, &turnPlayer, eFC_White);
 
 	
 	objects.push_back(&player1);
