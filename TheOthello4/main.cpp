@@ -5,6 +5,9 @@
 #include "Between.h"
 #include "DrawLineStright.h"
 #include <vector>
+#include <sstream>
+#include <iostream>
+#include <fstream>
 using namespace std;
 
 constexpr int  MFS_XSIZE = 8;
@@ -61,6 +64,17 @@ struct fieldstone {
 			}
 		}
 	}
+	//盤面を文字列で表し、最後にx,yを付与する
+	string GetString() {
+		stringstream ss;
+		for (int i = 0; i < MFS_XSIZE; ++i) {
+			for (int j = 0; j < MFS_YSIZE; ++j) {
+				ss << stone[i][j];
+			}
+		}
+		ss << "," << x << "," << y;
+		return ss.str();
+	}
 };
 
 class Field :public BaseClass {
@@ -68,7 +82,7 @@ class Field :public BaseClass {
 	//次の盤面の候補を格納しておく
 	vector<fieldstone> nextStones;
 	eFieldColor *turnPlayer;
-	bool endF;
+	int endF;
 	int elapsedTurn;
 
 	void DrawStone(int x, int y,fieldstone efc) {
@@ -173,7 +187,7 @@ public:
 		fieldStone.stone[tx - 1][ty] = eFC_White;
 		fieldStone.stone[tx][ty - 1] = eFC_White;
 		SetNextStone();
-		endF = false;
+		endF = 0;
 		elapsedTurn = 0;
 	}
 	void Update()override {
@@ -195,8 +209,8 @@ public:
 
 		int b = fieldStone.amount[eFC_Black];
 		int w = fieldStone.amount[eFC_White];
-		DrawFormatString(MFS_WIDTH, 0, MC_WHITE, "\nblack:%d\nwhite%d\nturn:%d\nPlayer:%s", b, w, elapsedTurn,*turnPlayer == eFC_Black?"black":"white");
-		if (endF) {
+		DrawFormatString(MFS_WIDTH, 0, MC_WHITE, "\n\nblack:%d\nwhite%d\nturn:%d\nPlayer:%s", b, w, elapsedTurn,*turnPlayer == eFC_Black?"black":"white");
+		if (endF > 0) {
 			int t = b - w;
 			string s;
 			if (t > 0) {
@@ -208,7 +222,13 @@ public:
 			else {
 				s = "引き分け";
 			}
-			DrawFormatString(MFS_WIDTH, 0, MC_WHITE, (s).c_str());
+			if (endF < 5) {
+				++endF;
+			}
+			else {
+				DrawFormatString(MFS_WIDTH, 0, MC_WHITE, "Press R To Restart");
+			}
+			DrawFormatString(MFS_WIDTH, 0, MC_WHITE, ("\n" + s).c_str());
 		}
 	}
 
@@ -222,7 +242,7 @@ public:
 				fieldStone = f; 
 				ChangeFieldColor(turnPlayer);
 				if (SetNextStone() == false) {
-					endF = true;
+					endF++;
 				}
 				fieldStone.SetAmount();
 				++elapsedTurn;
@@ -238,7 +258,7 @@ public:
 		this->fieldStone = fieldStone;
 		//ターンプレイヤーは書き換えない
 		if (SetNextStone() == false) {
-			endF = true;
+			endF++;
 		}
 		fieldStone.SetAmount();
 	}
@@ -247,6 +267,9 @@ public:
 	}
 	int GetElapsedTurn() {
 		return elapsedTurn;
+	}
+	int GetEndF() {
+		return endF;
 	}
 };
 
@@ -258,36 +281,127 @@ protected:
 	int myDrawColor;
 	int fx, fy;
 
+
+	FILE *fp;
+	string fname;
+	bool saveF;
+	//盤面を保存していく
+	vector<fieldstone> saveField;
+	vector<vector<string>> saveData;
+
 	//配置場所を決めるための関数。
 	//fxとfyを書き換える。
 	//実際に置くタイミングでは返り値をtrueにする。
 	virtual bool SetPosition() = 0;
 public:
-	BasePlayer(Field *field,eFieldColor *turnPlayer,eFieldColor myColor) {
+	BasePlayer(Field *field, eFieldColor *turnPlayer, eFieldColor myColor, bool saveF) {
 		this->field = field;
 		this->turnPlayer = turnPlayer;
 		this->myColor = myColor;
-		Initialize();
-	}
-	void Initialize() override {
-		fx = 0;
-		fy = 0;
 		if (myColor == eFC_Black) {
 			myDrawColor = MC_BLACK;
 		}
 		else {
 			myDrawColor = MC_WHITE;
 		}
+		this->saveF = saveF;
+		Initialize();
+
+		if (myColor == eFC_Black) {
+			fname = "black.txt";
+		}
+		else {
+			fname = "white.txt";
+		}
+
+		if (saveF) {
+			ifstream ifs(fname);
+			if (!ifs.fail()) {
+				string str;
+				while (getline(ifs, str))
+				{
+					stringstream ss{ str };
+					string buf;
+					vector<string> v;
+					while (getline(ss, buf, '/')) {
+						v.push_back(buf);
+					}
+					saveData.push_back(v);
+				}
+				ifs.close();
+			}
+		}
+	}
+	void Initialize() override {
+		fx = 0;
+		fy = 0;
+		saveField.clear();
 	}
 	void Update()override {
-		if (*turnPlayer == myColor) {
+		if (*turnPlayer == myColor && field->GetNextStones().size() > 0) {
 			if (SetPosition()) {
 				field->SetStone(fx, fy);
+				if (saveF) {
+					saveField.push_back(field->GetFieldStone());
+				}
+			}
+		}
+		
+		if (saveF) {
+			if (field->GetEndF() == 3) {
+				int r = 1;
+				auto fs = field->GetFieldStone().amount;
+				int me = fs[myColor];
+				int you = fs[GetChangeFieldColor(myColor)];
+				if (me > you) {
+					r = 1;
+				}
+				else if (me < you) {
+					r = 2;
+				}
+				else {
+					r = 3;
+				}
+
+				for (int j = 0; j < saveField.size(); ++j) {
+					bool f = true;
+					for (int i = 0; i < saveData.size(); ++i) {
+						if (saveData[i][0] == saveField[j].GetString()) {
+
+							//一致するものがあれば結果に応じて加算する
+							saveData[i][r] = to_string(stoi(saveData[i][r]) + 1);
+							f = false;
+						}
+					}
+					//一致するものが無かったのでsaveDataに追加する
+					if (f) {
+						vector<string> ts = { saveField[j].GetString() };
+						for (int n = 0; n < 3; ++n) {
+							if (n + 1 == r) {
+								ts.push_back("1");
+							}
+							else {
+								ts.push_back("0");
+							}
+						}
+						saveData.push_back(ts);
+					}
+				}
+
+				ofstream ofs(fname);
+				for (int i = 0; i < saveData.size(); ++i) {
+					ofs << saveData[i][0];
+					for (int j = 1; j < 4; ++j) {
+						ofs << '/' << saveData[i][j];
+					}
+					ofs << endl;
+				}
+				ofs.close();
 			}
 		}
 	}
 	void Draw() override {
-		if (*turnPlayer == myColor) {
+		if (*turnPlayer == myColor && field->GetNextStones().size() > 0) {
 			int tx = fx * MFS_UNIT + MFS_UNIT / 2;
 			int ty = fy * MFS_UNIT + MFS_UNIT / 2;
 			SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
@@ -309,12 +423,17 @@ class PlayerHuman :public BasePlayer {
 		SetBetween(0, &fx, MFS_XSIZE);
 		SetBetween(0, &fy, MFS_YSIZE);
 		if (GetMouseInput() & MOUSE_INPUT_LEFT) {
-			return true;
+			auto tf = field->GetNextStones();
+			for (int i = 0; i < tf.size(); ++i) {
+				if (tf[i].x == fx && tf[i].y == fy) {
+					return true;
+				}
+			}
 		}
 		return false;
 	}
 public:
-	PlayerHuman(Field *field, eFieldColor *turnPlayer, eFieldColor myColor) :BasePlayer(field, turnPlayer, myColor) {
+	PlayerHuman(Field *field, eFieldColor *turnPlayer, eFieldColor myColor, bool saveF = true) :BasePlayer(field, turnPlayer, myColor, saveF) {
 	
 	}
 };
@@ -333,7 +452,7 @@ class PlayerRandom :public BasePlayer {
 		return false;
 	}
 public:
-	PlayerRandom(Field *field, eFieldColor *turnPlayer, eFieldColor myColor) :BasePlayer(field, turnPlayer, myColor) {
+	PlayerRandom(Field *field, eFieldColor *turnPlayer, eFieldColor myColor, bool saveF = true) :BasePlayer(field, turnPlayer, myColor, saveF) {
 
 	}
 };
@@ -348,7 +467,7 @@ class PlayerRoler :public BasePlayer {
 		return true;
 	}
 public:
-	PlayerRoler(Field *field, eFieldColor *turnPlayer, eFieldColor myColor) :BasePlayer(field, turnPlayer, myColor) {
+	PlayerRoler(Field *field, eFieldColor *turnPlayer, eFieldColor myColor, bool saveF = true) :BasePlayer(field, turnPlayer, myColor, saveF) {
 		t = 0;
 	}
 };
@@ -373,7 +492,7 @@ class PlayerNextMax :public BasePlayer {
 		return false;
 	}
 public:
-	PlayerNextMax(Field *field, eFieldColor *turnPlayer, eFieldColor myColor) :BasePlayer(field, turnPlayer, myColor) {
+	PlayerNextMax(Field *field, eFieldColor *turnPlayer, eFieldColor myColor, bool saveF = true) :BasePlayer(field, turnPlayer, myColor, saveF) {
 
 	}
 };
@@ -395,10 +514,10 @@ class PlayerMinMax :public BasePlayer {
 			int ty = ft.GetNextStones()[i].y;
 			ft.SetStone(tx, ty);
 			ft.Update();
-			PlayerNextMax Player2(&ft, &_turnPlayer, GetChangeFieldColor(myColor));
+			PlayerNextMax Player2(&ft, &_turnPlayer, GetChangeFieldColor(myColor),false);
 			Player2.Update();
 
-			PlayerNextMax Player1(&ft, &_turnPlayer, myColor);
+			PlayerNextMax Player1(&ft, &_turnPlayer, myColor, false);
 			Player1.Update();
 			if (max < ft.GetFieldStone().amount[myColor]) {
 				max = ft.GetFieldStone().amount[myColor];
@@ -409,8 +528,51 @@ class PlayerMinMax :public BasePlayer {
 		return true;
 	}
 public:
-	PlayerMinMax(Field *field, eFieldColor *turnPlayer, eFieldColor myColor) :BasePlayer(field, turnPlayer, myColor) {
+	PlayerMinMax(Field *field, eFieldColor *turnPlayer, eFieldColor myColor, bool saveF = true) :BasePlayer(field, turnPlayer, myColor, saveF) {
 	
+	}
+};
+
+class PlayerMyAlgorithm :public BasePlayer {
+	bool SetPosition() override {
+		//自分なりのアルゴリズムを作ってみる
+		auto fs = field->GetNextStones();
+		//5%の確率でランダム
+		if (GetRand(99) < 5) {
+			auto r = GetRand(fs.size() - 1);
+			fx = fs[r].x;
+			fy = fs[r].y;
+			return true;
+		}
+
+		//四隅が取れれば取る
+		for (int i = 0; i < fs.size(); ++i) {
+			int tx = fs[i].x;
+			int ty = fs[i].y;
+			for (int a = 0; a < MFS_XSIZE; a += MFS_XSIZE - 1) {
+				for (int b = 0; b < MFS_YSIZE; b += MFS_YSIZE - 1) {
+					if (tx == a && ty == b) {
+						fx = tx;
+						fy = ty;
+						return true;
+					}
+				}
+			}
+		}
+
+		//次の盤面時、自分のものが最大になるように選ぶ
+		int max = -1;
+		for (int i = 0; i < fs.size(); ++i) {
+			if (max < fs[i].amount[myColor]) {
+				fx = fs[i].x;
+				fy = fs[i].y;
+			}
+		}
+		return true;
+	}
+public:
+	PlayerMyAlgorithm(Field *field, eFieldColor *turnPlayer, eFieldColor myColor, bool saveF = true) :BasePlayer(field, turnPlayer, myColor,saveF) {
+
 	}
 };
 
@@ -424,7 +586,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	SetUseJoypadVibrationFlag(FALSE);
 
 	SetWindowSizeChangeEnableFlag(FALSE, FALSE); //ユーザー側のウィンドウサイズ変更不可
-	//SetAlwaysRunFlag(TRUE); //最前面にない時も動作
+	SetAlwaysRunFlag(TRUE); //最前面にない時も動作
 	SetGraphMode(MWS_XMAX, MWS_YMAX, 32); //ウィンドウの最大サイズ指定
 	SetWindowSize(MWS_XMAX, MWS_YMAX); //ウィンドウのサイズ指定
 
@@ -447,12 +609,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//PlayerRoler player1(&field, &turnPlayer, eFC_Black);
 	//PlayerNextMax player1(&field, &turnPlayer, eFC_Black);
 	//PlayerMinMax player1(&field, &turnPlayer, eFC_Black);
+	//PlayerMyAlgorithm player1(&field, &turnPlayer, eFC_Black);
 
 	//PlayerHuman player2(&field, &turnPlayer, eFC_White);
-	//PlayerRandom player2(&field, &turnPlayer, eFC_White);
+	PlayerRandom player2(&field, &turnPlayer, eFC_White);
 	//PlayerRoler player2(&field, &turnPlayer, eFC_White);
 	//PlayerNextMax player2(&field, &turnPlayer, eFC_White);
-	PlayerMinMax player2(&field, &turnPlayer, eFC_White);
+	//PlayerMinMax player2(&field, &turnPlayer, eFC_White);
+	//PlayerMyAlgorithm player2(&field, &turnPlayer, eFC_White);
 
 	
 	objects.push_back(&player1);
@@ -466,7 +630,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	while (ProcessMessage() == 0)
 	{
-		if (CheckHitKey(KEY_INPUT_R)) {
+		if (CheckHitKey(KEY_INPUT_R) || field.GetEndF() >= 5) {
 			turnPlayer = eFC_Black;
 			for (int i = 0; i < objects.size(); ++i) {
 				objects[i]->Initialize();
