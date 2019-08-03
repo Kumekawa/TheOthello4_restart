@@ -298,10 +298,16 @@ public:
 
 //Š®‘Sƒ‰ƒ“ƒ_ƒ€
 class PlayerRandom :public BasePlayer {
+	vector<fieldstone> nextStones;
 	bool SetPosition() override {
-		fx = GetRand(MFS_XSIZE - 1);
-		fy = GetRand(MFS_YSIZE - 1);
-		return true;
+		nextStones = field->GetNextStones();
+		if (nextStones.size() > 0) {
+			int t = GetRand(nextStones.size() - 1);
+			fx = nextStones[t].x;
+			fy = nextStones[t].y;
+			return true;
+		}
+		return false;
 	}
 public:
 	PlayerRandom(Field *field, eFieldColor *turnPlayer, eFieldColor myColor) :BasePlayer(field, turnPlayer, myColor) {
@@ -329,18 +335,19 @@ class PlayerNextMax :public BasePlayer {
 	vector<fieldstone> nextStones;
 	bool SetPosition() override {
 		nextStones = field->GetNextStones();
-		int m = -1;
-		fx = 0;
-		fy = 0;
-		for (int i = 0; i < nextStones.size(); ++i) {
-			fieldstone t = nextStones[i];
-			if (m < t.amount[myColor]) {
-				m = t.amount[myColor];
-				fx = t.x;
-				fy = t.y;
+		if (nextStones.size() > 0) {
+			int m = -1;
+			for (int i = 0; i < nextStones.size(); ++i) {
+				fieldstone t = nextStones[i];
+				if (m < t.amount[myColor]) {
+					m = t.amount[myColor];
+					fx = t.x;
+					fy = t.y;
+				}
 			}
+			return true;
 		}
-		return true;
+		return false;
 	}
 public:
 	PlayerNextMax(Field *field, eFieldColor *turnPlayer, eFieldColor myColor) :BasePlayer(field, turnPlayer, myColor) {
@@ -376,15 +383,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	Field field(&turnPlayer);
 	objects.push_back(&field);
 
-	PlayerHuman player1(&field, &turnPlayer, eFC_Black);
-	//PlayerRandom player1(&field, &turnPlayer, eFC_Black);
+	//PlayerHuman player1(&field, &turnPlayer, eFC_Black);
+	PlayerRandom player1(&field, &turnPlayer, eFC_Black);
 	//PlayerRoler player1(&field, &turnPlayer, eFC_Black);
 	//PlayerNextMax player1(&field, &turnPlayer, eFC_Black);
 
 	//PlayerHuman player2(&field, &turnPlayer, eFC_White);
-	//PlayerRandom player2(&field, &turnPlayer, eFC_White);
+	PlayerRandom player2(&field, &turnPlayer, eFC_White);
 	//PlayerRoler player2(&field, &turnPlayer, eFC_White);
-	PlayerNextMax player2(&field, &turnPlayer, eFC_White);
+	//PlayerNextMax player2(&field, &turnPlayer, eFC_White);
 
 	
 	objects.push_back(&player1);
