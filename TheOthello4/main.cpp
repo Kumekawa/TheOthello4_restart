@@ -576,6 +576,45 @@ public:
 	}
 };
 
+//minmax方に基づいて配置する。お互いが最大ずつ取り合ったとき、最後に自身が最大のものを選ぶ
+class PlayerMinMaxHyper :public BasePlayer {
+	bool SetPosition() override {
+		//仮想環境を作り、自分の手番が最大になるように選ぶ
+		eFieldColor _turnPlayer = myColor;
+		Field _field(&_turnPlayer);
+		int max = -1;
+
+		_field.SetFieldStone(field->GetFieldStone());
+		for (int i = 0; i < _field.GetNextStones().size(); ++i) {
+			auto ft = _field;
+			_turnPlayer = myColor;
+
+			int tx = ft.GetNextStones()[i].x;
+			int ty = ft.GetNextStones()[i].y;
+			//ここで初回の石配置
+			ft.SetStone(tx, ty);
+			PlayerNextMax Player2(&ft, &_turnPlayer, GetChangeFieldColor(myColor), false);
+			PlayerNextMax Player1(&ft, &_turnPlayer, myColor, false);
+
+			//終了するまで殴り合い
+			while (ft.GetEndF() == 0) {
+				ft.Update();
+				Player2.Update();
+				Player1.Update();
+			}
+			if (max < ft.GetFieldStone().amount[myColor]) {
+				max = ft.GetFieldStone().amount[myColor];
+				fx = tx;
+				fy = ty;
+			}
+		}
+		return true;
+	}
+public:
+	PlayerMinMaxHyper(Field *field, eFieldColor *turnPlayer, eFieldColor myColor, bool saveF = true) :BasePlayer(field, turnPlayer, myColor, saveF) {
+
+	}
+};
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -604,20 +643,23 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	Field field(&turnPlayer);
 	objects.push_back(&field);
 
-	//PlayerHuman player1(&field, &turnPlayer, eFC_Black);
-	PlayerRandom player1(&field, &turnPlayer, eFC_Black);
-	//PlayerRoler player1(&field, &turnPlayer, eFC_Black);
-	//PlayerNextMax player1(&field, &turnPlayer, eFC_Black);
-	//PlayerMinMax player1(&field, &turnPlayer, eFC_Black);
-	//PlayerMyAlgorithm player1(&field, &turnPlayer, eFC_Black);
+	bool saveF = false;
 
-	//PlayerHuman player2(&field, &turnPlayer, eFC_White);
-	PlayerRandom player2(&field, &turnPlayer, eFC_White);
-	//PlayerRoler player2(&field, &turnPlayer, eFC_White);
-	//PlayerNextMax player2(&field, &turnPlayer, eFC_White);
-	//PlayerMinMax player2(&field, &turnPlayer, eFC_White);
-	//PlayerMyAlgorithm player2(&field, &turnPlayer, eFC_White);
+	PlayerHuman player1(&field, &turnPlayer, eFC_Black, saveF);
+	//PlayerRandom player1(&field, &turnPlayer, eFC_Black, saveF);
+	//PlayerRoler player1(&field, &turnPlayer, eFC_Black, saveF);
+	//PlayerNextMax player1(&field, &turnPlayer, eFC_Black, saveF);
+	//PlayerMinMax player1(&field, &turnPlayer, eFC_Black, saveF);
+	//PlayerMyAlgorithm player1(&field, &turnPlayer, eFC_Black, saveF);
+	//PlayerMinMaxHyper player1(&field, &turnPlayer, eFC_Black, saveF);
 
+	//PlayerHuman player2(&field, &turnPlayer, eFC_White, saveF);
+	//PlayerRandom player2(&field, &turnPlayer, eFC_White, saveF);
+	//PlayerRoler player2(&field, &turnPlayer, eFC_White, saveF);
+	//PlayerNextMax player2(&field, &turnPlayer, eFC_White, saveF);
+	//PlayerMinMax player2(&field, &turnPlayer, eFC_White, saveF);
+	//PlayerMyAlgorithm player2(&field, &turnPlayer, eFC_White, saveF);
+	PlayerMinMaxHyper player2(&field, &turnPlayer, eFC_White, saveF);
 	
 	objects.push_back(&player1);
 	objects.push_back(&player2);
@@ -630,8 +672,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	while (ProcessMessage() == 0)
 	{
-		if (CheckHitKey(KEY_INPUT_R) || field.GetEndF() >= 5) {
-			turnPlayer = eFC_Black;
+		if (CheckHitKey(KEY_INPUT_R)) {
+		//if (CheckHitKey(KEY_INPUT_R) || field.GetEndF() >= 5) {
+				turnPlayer = eFC_Black;
 			for (int i = 0; i < objects.size(); ++i) {
 				objects[i]->Initialize();
 			}
