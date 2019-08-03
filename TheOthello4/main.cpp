@@ -398,6 +398,8 @@ class PlayerMinMax :public BasePlayer {
 			PlayerNextMax Player2(&ft, &_turnPlayer, GetChangeFieldColor(myColor));
 			Player2.Update();
 
+			PlayerNextMax Player1(&ft, &_turnPlayer, myColor);
+			Player1.Update();
 			if (max < ft.GetFieldStone().amount[myColor]) {
 				max = ft.GetFieldStone().amount[myColor];
 				fx = tx;
@@ -440,10 +442,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	Field field(&turnPlayer);
 	objects.push_back(&field);
 
-	PlayerHuman player1(&field, &turnPlayer, eFC_Black);
-	//PlayerRandom player1(&field, &turnPlayer, eFC_Black);
+	//PlayerHuman player1(&field, &turnPlayer, eFC_Black);
+	PlayerRandom player1(&field, &turnPlayer, eFC_Black);
 	//PlayerRoler player1(&field, &turnPlayer, eFC_Black);
 	//PlayerNextMax player1(&field, &turnPlayer, eFC_Black);
+	//PlayerMinMax player1(&field, &turnPlayer, eFC_Black);
 
 	//PlayerHuman player2(&field, &turnPlayer, eFC_White);
 	//PlayerRandom player2(&field, &turnPlayer, eFC_White);
