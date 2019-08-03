@@ -770,6 +770,41 @@ public:
 	}
 };
 
+
+//次に相手が取れる手数が最小になるように選ぶ
+class PlayerNextPointMin :public BasePlayer {
+	bool SetPosition() override {
+		//仮想環境を作り、相手の手数が最小になるように選ぶ
+		eFieldColor _turnPlayer = myColor;
+		Field _field(&_turnPlayer);
+		int min = -1;
+
+		_field.SetFieldStone(field->GetFieldStone());
+		for (int i = 0; i < _field.GetNextStones().size(); ++i) {
+			auto ft = _field;
+			_turnPlayer = myColor;
+
+			int tx = ft.GetNextStones()[i].x;
+			int ty = ft.GetNextStones()[i].y;
+			//ここで初回の石配置
+			ft.SetStone(tx, ty);
+	
+			ft.Update();
+	
+			if (min == -1 || min > ft.GetNextStones().size()){
+				min = ft.GetNextStones().size();
+				fx = tx;
+				fy = ty;
+			}
+		}
+		return true;
+	}
+public:
+	PlayerNextPointMin(Field *field, eFieldColor *turnPlayer, eFieldColor myColor, bool saveF = true) :BasePlayer(field, turnPlayer, myColor, saveF) {
+
+	}
+};
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	SetOutApplicationLogValidFlag(false);//ログを出力しない
@@ -816,7 +851,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//PlayerMinMaxHyper player2(&field, &turnPlayer, eFC_White, saveF);
 	//PlayerRandomHyper player2(&field, &turnPlayer, eFC_White, saveF);
 	PlayerMyAlgorithmHyper player2(&field, &turnPlayer, eFC_White, saveF);
-
+	//PlayerNextPointMin player2(&field, &turnPlayer, eFC_White, saveF);
+	
 	objects.push_back(&player1);
 	objects.push_back(&player2);
 
