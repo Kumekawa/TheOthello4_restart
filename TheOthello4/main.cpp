@@ -54,6 +54,20 @@ struct fieldstone {
 	eFieldColor stone[MFS_XSIZE][MFS_YSIZE];
 	//実際にいくつずつあるか
 	int amount[3];
+	//どれが一番多いか
+	eFieldColor GetMaxColor() {
+		int t = amount[eFC_Black] - amount[eFC_White];
+		if (t > 0) {
+			return eFC_Black;
+		}
+		else if (t < 0) {
+			return eFC_White;
+		}
+		else {
+			return eFC_None;
+		}
+	}
+
 	void SetAmount() {
 		for (int i = 0; i < 3; ++i) {
 			amount[i] = 0;
@@ -616,7 +630,7 @@ public:
 	}
 };
 
-//置ける場所に置いたとき、お互いがランダムに置きあうのを1000回繰り返し、勝率が高いところを選ぶ
+//置ける場所に置いたとき、お互いがランダムに置きあうのを100回繰り返し、勝率が高いところを選ぶ
 class PlayerRandomHyper :public BasePlayer {
 	bool SetPosition() override {
 		//仮想環境を作り、自分の手番が最大になるように選ぶ
@@ -660,6 +674,98 @@ class PlayerRandomHyper :public BasePlayer {
 	}
 public:
 	PlayerRandomHyper(Field *field, eFieldColor *turnPlayer, eFieldColor myColor, bool saveF = true) :BasePlayer(field, turnPlayer, myColor, saveF) {
+
+	}
+};
+
+//minmax方に基づいて配置する。お互いが最大ずつ取り合ったとき、最後に自身が最大のものを選ぶ
+class PlayerMyAlgorithmHyper :public BasePlayer {
+	bool SetPosition() override {
+		//自分なりのアルゴリズムを作ってみる
+		auto fs = field->GetNextStones();
+		////5%の確率でランダム
+		//if (GetRand(99) < 5) {
+		//	auto r = GetRand(fs.size() - 1);
+		//	fx = fs[r].x;
+		//	fy = fs[r].y;
+		//	return true;
+		//}
+
+		//四隅が取れれば取る
+		for (int i = 0; i < fs.size(); ++i) {
+			int tx = fs[i].x;
+			int ty = fs[i].y;
+			for (int a = 0; a < MFS_XSIZE; a += MFS_XSIZE - 1) {
+				for (int b = 0; b < MFS_YSIZE; b += MFS_YSIZE - 1) {
+					if (tx == a && ty == b) {
+						fx = tx;
+						fy = ty;
+						return true;
+					}
+				}
+			}
+		}
+
+		//仮想環境を作り、自分の手番が最大になるように選ぶ
+		eFieldColor _turnPlayer = myColor;
+		Field _field(&_turnPlayer);
+		double max = -1;
+
+		_field.SetFieldStone(field->GetFieldStone());
+		for (int i = 0; i < _field.GetNextStones().size(); ++i) {
+			auto ft = _field;
+			_turnPlayer = myColor;
+
+			int tx = ft.GetNextStones()[i].x;
+			int ty = ft.GetNextStones()[i].y;
+			//ここで初回の石配置
+			ft.SetStone(tx, ty);
+			PlayerNextMax Player2(&ft, &_turnPlayer, GetChangeFieldColor(myColor), false);
+			PlayerNextMax Player1(&ft, &_turnPlayer, myColor, false);
+
+			//終了するまで殴り合い
+			while (ft.GetEndF() == 0) {
+				ft.Update();
+				Player2.Update();
+				Player1.Update();
+			}
+
+			//もしtxまたはtyが端ならボーナスを付ける
+			double bonus = 1.0;
+			if (tx == 0 || ty == 0 || tx == MFS_XSIZE - 1 || ty == MFS_YSIZE - 1) {
+				bonus = 1.25;
+			}
+
+			//もし四隅の隣をとらなければならない場合、得点を下げる
+			double minus = 1.0;
+			int x_s[] = {
+				1,MFS_XSIZE - 2,
+				0,1,MFS_XSIZE - 2, MFS_XSIZE - 1,
+				0,1,MFS_XSIZE - 2, MFS_XSIZE - 1,
+				1,MFS_XSIZE - 2,
+			};
+			int y_s[] = {
+				0,0,
+				1,1,1,1,
+				MFS_YSIZE - 2,MFS_YSIZE - 2,MFS_YSIZE - 2,MFS_YSIZE - 2,
+				MFS_YSIZE - 1,MFS_YSIZE - 1,
+			};
+			for (int i = 0; i < 12; ++i) {
+				if (tx == x_s[i] && ty == y_s[i]) {
+					minus = 0.5;
+				}
+			}
+
+			if (max < ft.GetFieldStone().amount[myColor] * bonus * minus) {
+				max = ft.GetFieldStone().amount[myColor] * bonus * minus;
+				fx = tx;
+				fy = ty;
+			}
+		}
+		return true;
+	}
+public:
+	PlayerMyAlgorithmHyper(Field *field, eFieldColor *turnPlayer, eFieldColor myColor, bool saveF = true) :BasePlayer(field, turnPlayer, myColor, saveF) {
 
 	}
 };
@@ -708,7 +814,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//PlayerMinMax player2(&field, &turnPlayer, eFC_White, saveF);
 	//PlayerMyAlgorithm player2(&field, &turnPlayer, eFC_White, saveF);
 	//PlayerMinMaxHyper player2(&field, &turnPlayer, eFC_White, saveF);
-	PlayerRandomHyper player2(&field, &turnPlayer, eFC_White, saveF);
+	//PlayerRandomHyper player2(&field, &turnPlayer, eFC_White, saveF);
+	PlayerMyAlgorithmHyper player2(&field, &turnPlayer, eFC_White, saveF);
 
 	objects.push_back(&player1);
 	objects.push_back(&player2);
@@ -719,11 +826,31 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		objects[i]->Initialize();
 	}
 
+	int w = 0;
+	int b = 0;
+	int d = 0;
+
 	while (ProcessMessage() == 0)
 	{
 		if (CheckHitKey(KEY_INPUT_R)) {
 		//if (CheckHitKey(KEY_INPUT_R) || field.GetEndF() >= 5) {
-				turnPlayer = eFC_Black;
+
+			switch (field.GetFieldStone().GetMaxColor())
+			{
+			case eFC_Black:
+				b++;
+				break;
+			case eFC_White:
+				w++;
+				break;
+			case eFC_None:
+				d++;
+				break;
+			default:
+				break;
+			}
+
+			turnPlayer = eFC_Black;
 			for (int i = 0; i < objects.size(); ++i) {
 				objects[i]->Initialize();
 			}
@@ -732,6 +859,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			objects[i]->Update();
 			objects[i]->Draw();
 		}
+
+		DrawFormatString(MFS_WIDTH, MFS_HEIGHT / 2, MC_WHITE, "黒勝ち:%d\n白勝ち:%d\n引き分け:%d", b, w, d);
 		if (DxLibEndEffect(true)) {
 			break;
 		}
