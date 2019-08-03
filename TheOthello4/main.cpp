@@ -18,18 +18,23 @@ enum eFieldColor {
 	eFC_White,
 	eFC_None
 };
-void ChangeFieldColor(eFieldColor *turn) {
-	switch (*turn)
+eFieldColor GetChangeFieldColor(eFieldColor turn) {
+	switch (turn)
 	{
 	case eFC_Black:
-		*turn = eFC_White;
+		turn = eFC_White;
 		break;
 	case eFC_White:
-		*turn = eFC_Black;
+		turn = eFC_Black;
 		break;
 	default:
 		break;
 	}
+	return turn;
+}
+
+void ChangeFieldColor(eFieldColor *turn) {
+	*turn = GetChangeFieldColor(*turn);
 }
 
 class BaseClass {
@@ -379,10 +384,27 @@ class PlayerMinMax :public BasePlayer {
 		//‰¼‘zŠÂ‹«‚ðì‚èAŽ©•ª‚ÌŽè”Ô‚ªÅ‘å‚É‚È‚é‚æ‚¤‚É‘I‚Ô
 		eFieldColor _turnPlayer = myColor;
 		Field _field(&_turnPlayer);
-		PlayerNextMax Player1(&_field, &_turnPlayer, myColor);
-		PlayerNextMax Player2(&_field, &_turnPlayer, myColor);
+		int max = -1;
 
-		return false;
+		_field.SetFieldStone(field->GetFieldStone());
+		for (int i = 0; i < _field.GetNextStones().size(); ++i) {
+			auto ft = _field;
+			_turnPlayer = myColor;
+
+			int tx = ft.GetNextStones()[i].x;
+			int ty = ft.GetNextStones()[i].y;
+			ft.SetStone(tx, ty);
+			ft.Update();
+			PlayerNextMax Player2(&ft, &_turnPlayer, GetChangeFieldColor(myColor));
+			Player2.Update();
+
+			if (max < ft.GetFieldStone().amount[myColor]) {
+				max = ft.GetFieldStone().amount[myColor];
+				fx = tx;
+				fy = ty;
+			}
+		}
+		return true;
 	}
 public:
 	PlayerMinMax(Field *field, eFieldColor *turnPlayer, eFieldColor myColor) :BasePlayer(field, turnPlayer, myColor) {
@@ -424,10 +446,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//PlayerNextMax player1(&field, &turnPlayer, eFC_Black);
 
 	//PlayerHuman player2(&field, &turnPlayer, eFC_White);
-	PlayerRandom player2(&field, &turnPlayer, eFC_White);
+	//PlayerRandom player2(&field, &turnPlayer, eFC_White);
 	//PlayerRoler player2(&field, &turnPlayer, eFC_White);
 	//PlayerNextMax player2(&field, &turnPlayer, eFC_White);
-	//PlayerMinMax player2(&field, &turnPlayer, eFC_White);
+	PlayerMinMax player2(&field, &turnPlayer, eFC_White);
 
 	
 	objects.push_back(&player1);
