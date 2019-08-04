@@ -296,6 +296,7 @@ protected:
 	int myDrawColor;
 	int fx, fy;
 
+	bool startF;
 
 	FILE *fp;
 	string fname;
@@ -351,6 +352,7 @@ public:
 		fx = 0;
 		fy = 0;
 		saveField.clear();
+		startF = true;
 	}
 	void Update()override {
 		if (*turnPlayer == myColor && field->GetNextStones().size() > 0) {
@@ -532,6 +534,31 @@ class PlayerNextMax :public BasePlayer {
 	}
 public:
 	PlayerNextMax(Field *field, eFieldColor *turnPlayer, eFieldColor myColor, bool saveF = true) :BasePlayer(field, turnPlayer, myColor, saveF) {
+
+	}
+};
+
+//次が最小のものを探す
+class PlayerNextMin :public BasePlayer {
+	vector<fieldstone> nextStones;
+	bool SetPosition() override {
+		nextStones = field->GetNextStones();
+		if (nextStones.size() > 0) {
+			int m = -1;
+			for (int i = 0; i < nextStones.size(); ++i) {
+				fieldstone t = nextStones[i];
+				if (m == -1 || m > t.amount[myColor]) {
+					m = t.amount[myColor];
+					fx = t.x;
+					fy = t.y;
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+public:
+	PlayerNextMin(Field *field, eFieldColor *turnPlayer, eFieldColor myColor, bool saveF = true) :BasePlayer(field, turnPlayer, myColor, saveF) {
 
 	}
 };
@@ -860,6 +887,193 @@ public:
 };
 
 
+//DeepLearnigのようなものを作ってみる
+class PlayerDeep :public BasePlayer {
+	double w[MFS_XSIZE * MFS_YSIZE - 4][MFS_XSIZE][MFS_YSIZE];
+	vector<fieldstone> stones;
+
+	FILE *fp;
+	string fname;
+
+	double GetWeight(fieldstone fieldStone, int turn) {
+		double sum = 0;
+		for (int i = 0; i < MFS_XSIZE; ++i) {
+			for (int j = 0; j < MFS_YSIZE; ++j) {
+				int t = 0;
+				auto f = fieldStone.stone[i][j];
+				if (f == myColor) {
+					t = 1;
+				}
+				else if(f == GetChangeFieldColor(myColor)){
+					t = -1;
+				}
+				else {
+					t = 0;
+				}
+				sum += t * w[turn][i][j];
+			}
+		}
+		return sum;
+	}
+
+	bool SetPosition() override {
+		if (startF) {
+			auto tc = field->GetFieldStone().GetMaxColor();
+			for (int i = 0; i < stones.size(); ++i) {
+				//ゲーム終了時、自分の色が多ければwは増加、相手が多ければwを減少させる
+				double me = 0;
+				double you = 0;
+				double e = 0.001;
+				if (tc == myColor) {
+					me = 1;
+					you = -1;
+				}
+				else if (tc == GetChangeFieldColor(myColor)) {
+					me = -1;
+					you = 1;
+				}
+				for (int x = 0; x < MFS_XSIZE; ++x) {
+					for (int y = 0; y < MFS_YSIZE; ++y) {
+						if (stones[i].stone[x][y] == myColor) {
+							w[i][x][y] += me * e * (1.0 + (double)(GetRand(100) - 50) / 100.0);
+						}
+						else if (stones[i].stone[x][y] == GetChangeFieldColor(myColor)) {
+							w[i][x][y] += you * e * (1.0 + (double)(GetRand(100) - 50) / 100.0);
+						}
+					}
+				}
+			}
+			stones.clear();
+			startF = false;
+			
+			fopen_s(&fp, fname.c_str(), "wb");
+			for (int i = 0; i < MFS_XSIZE * MFS_YSIZE - 4; ++i) {
+				for (int x = 0; x < MFS_XSIZE; ++x) {
+					for (int y = 0; y < MFS_YSIZE; ++y) {
+						fwrite(&w[i][x][y], sizeof(double), 1, fp);
+					}
+				}
+			}
+			fclose(fp);
+		}
+
+		//int max = -1;
+
+		//_field.SetFieldStone(field->GetFieldStone());
+		//for (int i = 0; i < _field.GetNextStones().size(); ++i) {
+		//	auto ft = _field;
+		//	_turnPlayer = myColor;
+
+		//	int tx = ft.GetNextStones()[i].x;
+		//	int ty = ft.GetNextStones()[i].y;
+		//	//ここで初回の石配置
+		//	ft.SetStone(tx, ty);
+		//	PlayerNextMax Player2(&ft, &_turnPlayer, GetChangeFieldColor(myColor), false);
+		//	PlayerNextMax Player1(&ft, &_turnPlayer, myColor, false);
+
+		//	//終了するまで殴り合い
+		//	while (ft.GetEndF() == 0) {
+		//		ft.Update();
+		//		Player2.Update();
+		//		Player1.Update();
+		//	}
+		//	if (max < ft.GetFieldStone().amount[myColor]) {
+		//		max = ft.GetFieldStone().amount[myColor];
+		//		fx = tx;
+		//		fy = ty;
+		//	}
+		//}
+
+
+		auto tf = field->GetNextStones();
+		double max;
+		bool firstF = true;
+		
+		for (int i = 0; i < tf.size(); ++i) {
+			auto _turn =GetChangeFieldColor(*turnPlayer);
+			Field _field(&_turn);
+			_field.SetFieldStone(tf[i]);
+			if (field->GetElapsedTurn() < 30) {
+				PlayerNextMin _Player2(&_field, &_turn, GetChangeFieldColor(myColor), false);
+				PlayerNextMin _Player1(&_field, &_turn, myColor, false);
+
+				double t = 0;
+				double s = 1;
+				while (_field.GetEndF() == 0) {
+					_field.Update();
+					_Player2.Update();
+					_Player1.Update();
+					t += GetWeight(_field.GetFieldStone(), field->GetElapsedTurn()) / s;
+					s++;
+				}
+				if (firstF || max < t) {
+					firstF = false;
+					max = t;
+					fx = tf[i].x;
+					fy = tf[i].y;
+				}
+			}
+			else {
+				PlayerMyAlgorithmHyper _Player2(&_field, &_turn, GetChangeFieldColor(myColor), false);
+				PlayerMyAlgorithmHyper _Player1(&_field, &_turn, myColor, false);
+
+				double t = 0;
+				double s = 1;
+				while (_field.GetEndF() == 0) {
+					_field.Update();
+					_Player2.Update();
+					_Player1.Update();
+					t += GetWeight(_field.GetFieldStone(), field->GetElapsedTurn()) / s;
+					s++;
+				}
+				if (firstF || max < t) {
+					firstF = false;
+					max = t;
+					fx = tf[i].x;
+					fy = tf[i].y;
+				}
+			}
+		}
+
+		for (int i = 0; i < tf.size(); ++i) {
+			if (fx == tf[i].x && fy == tf[i].y) {
+				stones.push_back(tf[i]);
+				break;
+			}
+		}
+
+		return true;
+	}
+public:
+	PlayerDeep(Field *field, eFieldColor *turnPlayer, eFieldColor myColor, bool saveF = true) :BasePlayer(field, turnPlayer, myColor, saveF) {
+		if (myColor == eFC_Black) {
+			fname = "BlackWeight.dat";
+		}
+		else {
+			fname = "WhiteWeight.dat";
+		}
+		auto error = fopen_s(&fp, fname.c_str(), "rb");
+		if (error == 0) {
+			for (int i = 0; i < MFS_XSIZE * MFS_YSIZE - 4; ++i) {
+				for (int x = 0; x < MFS_XSIZE; ++x) {
+					for (int y = 0; y < MFS_YSIZE; ++y) {
+						fread_s(&w[i][x][y], sizeof(double), sizeof(double), 1, fp);
+					}
+				}
+			}
+			fclose(fp);
+		}
+		else {
+			for (int i = 0; i < MFS_XSIZE * MFS_YSIZE - 4; ++i) {
+				for (int x = 0; x < MFS_XSIZE; ++x) {
+					for (int y = 0; y < MFS_YSIZE; ++y) {
+						w[i][x][y] = 0.5;
+					}
+				}
+			}
+		}
+	}
+};
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -890,13 +1104,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	bool saveF = false;
 
-	PlayerHuman player1(&field, &turnPlayer, eFC_Black, saveF);
+	//PlayerHuman player1(&field, &turnPlayer, eFC_Black, saveF);
 	//PlayerRandom player1(&field, &turnPlayer, eFC_Black, saveF);
 	//PlayerRoler player1(&field, &turnPlayer, eFC_Black, saveF);
 	//PlayerNextMax player1(&field, &turnPlayer, eFC_Black, saveF);
 	//PlayerMinMax player1(&field, &turnPlayer, eFC_Black, saveF);
 	//PlayerMyAlgorithm player1(&field, &turnPlayer, eFC_Black, saveF);
 	//PlayerMinMaxHyper player1(&field, &turnPlayer, eFC_Black, saveF);
+	PlayerMyAlgorithmHyper player1(&field, &turnPlayer, eFC_Black, saveF);
+	//PlayerDeep player1(&field, &turnPlayer, eFC_Black, saveF);
 
 	//PlayerHuman player2(&field, &turnPlayer, eFC_White, saveF);
 	//PlayerRandom player2(&field, &turnPlayer, eFC_White, saveF);
@@ -906,9 +1122,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//PlayerMyAlgorithm player2(&field, &turnPlayer, eFC_White, saveF);
 	//PlayerMinMaxHyper player2(&field, &turnPlayer, eFC_White, saveF);
 	//PlayerRandomHyper player2(&field, &turnPlayer, eFC_White, saveF);
-	PlayerMyAlgorithmHyper player2(&field, &turnPlayer, eFC_White, saveF);
+	//PlayerMyAlgorithmHyper player2(&field, &turnPlayer, eFC_White, saveF);
 	//PlayerNextPointMin player2(&field, &turnPlayer, eFC_White, saveF);
-	
+	PlayerDeep player2(&field, &turnPlayer, eFC_White, saveF);
+
 	objects.push_back(&player1);
 	objects.push_back(&player2);
 
@@ -924,8 +1141,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	while (ProcessMessage() == 0)
 	{
-		if (CheckHitKey(KEY_INPUT_R)) {
+		//if (CheckHitKey(KEY_INPUT_R)) {
 		//if (CheckHitKey(KEY_INPUT_R) || field.GetEndF() >= 5) {
+		if (field.GetEndF()) {
 
 			switch (field.GetFieldStone().GetMaxColor())
 			{
