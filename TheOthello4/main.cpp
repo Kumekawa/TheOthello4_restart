@@ -307,6 +307,7 @@ protected:
 	int fx, fy;
 
 	bool startF;
+	bool endF;
 
 	FILE *fp;
 	string fname;
@@ -363,8 +364,12 @@ public:
 		fy = 0;
 		saveField.clear();
 		startF = true;
+		endF = false;
 	}
 	void Update()override {
+		if (field->GetEndF()) {
+			endF = true;
+		}
 		if (SetPosition()) {
 			if (*turnPlayer == myColor) {
 				field->SetStone(fx, fy);
@@ -900,7 +905,6 @@ public:
 //DeepLearnigのようなものを作ってみる
 class PlayerDeep :public BasePlayer {
 	double w[MFS_AMOUNT - 4][MFS_XSIZE][MFS_YSIZE];
-	vector<fieldstone> stones;
 
 	FILE *fp;
 	string fname;
@@ -926,9 +930,9 @@ class PlayerDeep :public BasePlayer {
 		return sum;
 	}
 
-	void SetWeight() {
+	void SetWeight(fieldstone stones[MFS_AMOUNT - 4]) {
 		auto tc = field->GetFieldStone().GetMaxColor();
-		for (int i = 0; i < stones.size(); ++i) {
+		for (int i = 0; i < field->GetElapsedTurn(); ++i) {
 			//ゲーム終了時、自分の色が多ければwは増加、相手が多ければwを減少させる。範囲は-1から1まで
 			double me = (double)(GetRand(100) - 50) / 100.0;
 			double you = (double)(GetRand(100) - 50) / 100.0;
@@ -968,12 +972,14 @@ class PlayerDeep :public BasePlayer {
 	}
 
 	bool SetPosition() override {
+		static fieldstone stones[MFS_AMOUNT - 4];
+
+		stones[field->GetElapsedTurn()] = field->GetFieldStone();
 		if (field->GetEndF()) {
-			SetWeight();
-			stones.clear();
+			SetWeight(stones);
+			//stones.clear();
 			startF = false;
 		}
-
 		//int max = -1;
 
 		//_field.SetFieldStone(field->GetFieldStone());
@@ -1054,13 +1060,6 @@ class PlayerDeep :public BasePlayer {
 					}
 				}
 			}
-
-			for (int i = 0; i < tf.size(); ++i) {
-				if (fx == tf[i].x && fy == tf[i].y) {
-					stones.push_back(tf[i]);
-					break;
-				}
-			}
 		}
 		return true;
 	}
@@ -1135,7 +1134,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//PlayerMyAlgorithmHyper player1(&field, &turnPlayer, eFC_Black, saveF);
 	PlayerDeep player1(&field, &turnPlayer, eFC_Black, saveF);
 
-	PlayerHuman player2(&field, &turnPlayer, eFC_White, saveF);
+	//PlayerHuman player2(&field, &turnPlayer, eFC_White, saveF);
 	//PlayerRandom player2(&field, &turnPlayer, eFC_White, saveF);
 	//PlayerRoler player2(&field, &turnPlayer, eFC_White, saveF);
 	//PlayerNextMax player2(&field, &turnPlayer, eFC_White, saveF);
@@ -1145,7 +1144,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//PlayerRandomHyper player2(&field, &turnPlayer, eFC_White, saveF);
 	//PlayerMyAlgorithmHyper player2(&field, &turnPlayer, eFC_White, saveF);
 	//PlayerNextPointMin player2(&field, &turnPlayer, eFC_White, saveF);
-	//PlayerDeep player2(&field, &turnPlayer, eFC_White, saveF);
+	PlayerDeep player2(&field, &turnPlayer, eFC_White, saveF);
 
 	objects.push_back(&player1);
 	objects.push_back(&player2);
@@ -1159,6 +1158,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	int w = 0;
 	int b = 0;
 	int d = 0;
+
+	bool t = true;
 
 	while (ProcessMessage() == 0)
 	{
@@ -1186,8 +1187,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				objects[i]->Initialize();
 			}
 		}
+		field.Update();
+		if (t = !t) {
+			player1.Update();
+		}
+		else {
+			player2.Update();
+		}
 		for (int i = 0; i < objects.size(); ++i) {
-			objects[i]->Update();
 			objects[i]->Draw();
 		}
 
