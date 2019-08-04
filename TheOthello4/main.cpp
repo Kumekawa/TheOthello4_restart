@@ -108,6 +108,8 @@ class Field :public BaseClass {
 	fieldstone fieldStone;
 	//次の盤面の候補を格納しておく
 	vector<fieldstone> nextStones;
+	//ここまでの盤面を記憶しておく
+	vector<fieldstone> history;
 	eFieldColor *turnPlayer;
 	int endCounter;
 	bool endF;
@@ -219,6 +221,7 @@ public:
 		endCounter = 0;
 		endF = false;
 		elapsedTurn = 0;
+		history.clear();
 	}
 	void Update()override {
 		if (endCounter > 0) {
@@ -277,6 +280,7 @@ public:
 				if (SetNextStone() == false) {
 					endCounter++;
 				}
+				history.push_back(fieldStone);
 				fieldStone.SetAmount();
 				++elapsedTurn;
 				break;
@@ -289,7 +293,7 @@ public:
 	}
 	void SetFieldStone(fieldstone fieldStone) {
 		this->fieldStone = fieldStone;
-		//ターンプレイヤーは書き換えない
+		//ターンプレイヤーは書き換えない。歴史も書き換えない
 		if (SetNextStone() == false) {
 			endCounter++;
 		}
@@ -306,6 +310,9 @@ public:
 	}
 	bool GetEndF() {
 		return endF;
+	}
+	vector<fieldstone> GetHistory() {
+		return history;
 	}
 };
 
@@ -1000,9 +1007,10 @@ class PlayerDeep :public BasePlayer {
 		return sum;
 	}
 
-	void SetWeight(fieldstone stones[MFS_AMOUNT - 4]) {
+	void SetWeight() {
 		auto tc = field->GetFieldStone().GetMaxColor();
-		for (int i = 0; i < field->GetElapsedTurn(); ++i) {
+		auto history = field->GetHistory();
+		for (int i = 0; i < history.size(); ++i) {
 			//ゲーム終了時、自分の色が多ければwは増加、相手が多ければwを減少させる。範囲は-1から1まで
 			double me = (double)(GetRand(100) - 50) / 100.0;
 			double you = (double)(GetRand(100) - 50) / 100.0;
@@ -1017,10 +1025,10 @@ class PlayerDeep :public BasePlayer {
 			}
 			for (int x = 0; x < MFS_XSIZE; ++x) {
 				for (int y = 0; y < MFS_YSIZE; ++y) {
-					if (stones[i].stone[x][y] == myColor) {
+					if (history[i].stone[x][y] == myColor) {
 						w[i][x][y] += me * e * (1.0 + (double)(GetRand(100) - 50) / 100.0);
 					}
-					else if (stones[i].stone[x][y] == GetChangeFieldColor(myColor)) {
+					else if (history[i].stone[x][y] == GetChangeFieldColor(myColor)) {
 						w[i][x][y] += you * e * (1.0 + (double)(GetRand(100) - 50) / 100.0);
 					}
 					SetBetweenDouble(-1, &w[i][x][y], 1);
@@ -1042,11 +1050,8 @@ class PlayerDeep :public BasePlayer {
 	}
 
 	bool SetPosition() override {
-		static fieldstone stones[MFS_AMOUNT - 4];
-
-		stones[field->GetElapsedTurn()] = field->GetFieldStone();
 		if (endF) {
-			SetWeight(stones);
+			SetWeight();
 			//stones.clear();
 			startF = false;
 		}
@@ -1100,6 +1105,9 @@ class PlayerDeep :public BasePlayer {
 						}
 					}
 				}
+				delete _player1;
+				delete _player2;
+
 				if (firstF || max < t) {
 					firstF = false;
 					max = t;
