@@ -535,16 +535,24 @@ public:
 
 //左上からローラー作戦
 class PlayerRoler :public BasePlayer {
-	int t;
 	bool SetPosition() override {
-		t = (t + 1) % (MFS_AMOUNT);
-		fx = t % MFS_XSIZE;
-		fy = t / MFS_YSIZE;
+		auto ft = field->GetNextStones();
+		int min = MFS_XSIZE * MFS_YSIZE;
+		for (int i = 0; i < ft.size(); ++i) {
+			int tx = ft[i].x;
+			int ty = ft[i].y;
+			int m = tx + ty * MFS_XSIZE;
+			if (min > m) {
+				min = m;
+				fx = tx;
+				fy = ty;
+			}
+		}
 		return true;
 	}
 public:
 	PlayerRoler(Field *field, eFieldColor *turnPlayer, eFieldColor myColor, bool saveF = true) :BasePlayer(field, turnPlayer, myColor, saveF) {
-		t = 0;
+		
 	}
 };
 
@@ -1012,8 +1020,9 @@ class PlayerDeep :public BasePlayer {
 		auto history = field->GetHistory();
 		for (int i = 0; i < history.size(); ++i) {
 			//ゲーム終了時、自分の色が多ければwは増加、相手が多ければwを減少させる。範囲は-1から1まで
-			double me = (double)(GetRand(100) - 50) / 100.0;
-			double you = (double)(GetRand(100) - 50) / 100.0;
+			double base;
+			double me = 0;
+			double you = 0;
 			double e = 0.01;
 			if (tc == myColor) {
 				me += 1;
@@ -1023,15 +1032,20 @@ class PlayerDeep :public BasePlayer {
 				me += -1;
 				you += 1;
 			}
+			else {
+				me += -1;
+				you += -1;
+			}
 			for (int x = 0; x < MFS_XSIZE; ++x) {
 				for (int y = 0; y < MFS_YSIZE; ++y) {
+					base = (double)(GetRand(100) - 50) / 100.0;
 					if (history[i].stone[x][y] == myColor) {
-						w[i][x][y] += me * e * (1.0 + (double)(GetRand(100) - 50) / 100.0);
+						w[i][x][y] += (me + base) * e * (1.0 + (double)(GetRand(100) - 50) / 100.0);
 					}
 					else if (history[i].stone[x][y] == GetChangeFieldColor(myColor)) {
-						w[i][x][y] += you * e * (1.0 + (double)(GetRand(100) - 50) / 100.0);
+						w[i][x][y] += (you + base) * e * (1.0 + (double)(GetRand(100) - 50) / 100.0);
 					}
-					SetBetweenDouble(-1, &w[i][x][y], 1);
+					//SetBetweenDouble(-1, &w[i][x][y], 1);
 				}
 			}
 		}
@@ -1180,16 +1194,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	bool saveF = false;
 
 	//PlayerHuman player1(&field, &turnPlayer, eFC_Black, saveF);
-	PlayerRandom player1(&field, &turnPlayer, eFC_Black, saveF);
+	//PlayerRandom player1(&field, &turnPlayer, eFC_Black, saveF);
 	//PlayerRoler player1(&field, &turnPlayer, eFC_Black, saveF);
 	//PlayerNextMax player1(&field, &turnPlayer, eFC_Black, saveF);
+	//PlayerNextMin player1(&field, &turnPlayer, eFC_Black, saveF);
 	//PlayerMinMax player1(&field, &turnPlayer, eFC_Black, saveF);
 	//PlayerMyAlgorithm player1(&field, &turnPlayer, eFC_Black, saveF);
 	//PlayerMinMaxHyper player1(&field, &turnPlayer, eFC_Black, saveF);
 	//PlayerMyAlgorithmHyper player1(&field, &turnPlayer, eFC_Black, saveF);
-	//PlayerDeep player1(&field, &turnPlayer, eFC_Black, saveF);
+	PlayerDeep player1(&field, &turnPlayer, eFC_Black, saveF);
 
-	//PlayerHuman player2(&field, &turnPlayer, eFC_White, saveF);
+	PlayerHuman player2(&field, &turnPlayer, eFC_White, saveF);
 	//PlayerRandom player2(&field, &turnPlayer, eFC_White, saveF);
 	//PlayerRoler player2(&field, &turnPlayer, eFC_White, saveF);
 	//PlayerNextMax player2(&field, &turnPlayer, eFC_White, saveF);
@@ -1199,7 +1214,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//PlayerRandomHyper player2(&field, &turnPlayer, eFC_White, saveF);
 	//PlayerMyAlgorithmHyper player2(&field, &turnPlayer, eFC_White, saveF);
 	//PlayerNextPointMin player2(&field, &turnPlayer, eFC_White, saveF);
-	PlayerDeep player2(&field, &turnPlayer, eFC_White, saveF);
+	//PlayerDeep player2(&field, &turnPlayer, eFC_White, saveF);
 
 	objects.push_back(&player1);
 	objects.push_back(&player2);
@@ -1218,10 +1233,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	while (ProcessMessage() == 0)
 	{
-		//if (CheckHitKey(KEY_INPUT_R)) {
+		if (CheckHitKey(KEY_INPUT_R) && player1.GetEndF() && player2.GetEndF()) {
 		//if (CheckHitKey(KEY_INPUT_R) || field.GetEndF() >= 5) {
 		//if (field.GetEndF()) {
-		if (player1.GetEndF() && player2.GetEndF()) {
+		//if (player1.GetEndF() && player2.GetEndF()) {
 
 			switch (field.GetFieldStone().GetMaxColor())
 			{
