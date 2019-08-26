@@ -22,32 +22,32 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{65CDDE22-3C20-47B0-9390-11D3F8F2A3C8}</ProjectGuid>
     <RootNamespace>TheOthello4</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -131,10 +131,47 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BasePlayer.cpp" />
+    <ClCompile Include="Field.cpp" />
+    <ClCompile Include="FieldContent.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="PlayerBetter.cpp" />
+    <ClCompile Include="PlayerDeep.cpp" />
+    <ClCompile Include="PlayerHuman.cpp" />
+    <ClCompile Include="PlayerMaxValue.cpp" />
+    <ClCompile Include="PlayerMinMax.cpp" />
+    <ClCompile Include="PlayerMinMaxHyper.cpp" />
+    <ClCompile Include="PlayerMyalgorithm.cpp" />
+    <ClCompile Include="PlayerMyAlgorithmHyper.cpp" />
+    <ClCompile Include="PlayerNextMax.cpp" />
+    <ClCompile Include="PlayerNextMin.cpp" />
+    <ClCompile Include="PlayerNextPointMin.cpp" />
+    <ClCompile Include="PlayerRandom.cpp" />
+    <ClCompile Include="PlayerRandomHyper.cpp" />
+    <ClCompile Include="PlayerRoler.cpp" />
+    <ClCompile Include="Players.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BaseClass.h" />
+    <ClInclude Include="BasePlayer.h" />
+    <ClInclude Include="Field.h" />
+    <ClInclude Include="FieldContent.h" />
     <ClInclude Include="MacroWindowSize.h" />
+    <ClInclude Include="PlayerBetter.h" />
+    <ClInclude Include="PlayerDeep.h" />
+    <ClInclude Include="PlayerHuman.h" />
+    <ClInclude Include="PlayerMaxValue.h" />
+    <ClInclude Include="PlayerMinMax.h" />
+    <ClInclude Include="PlayerMinMaxHyper.h" />
+    <ClInclude Include="PlayerMyalgorithm.h" />
+    <ClInclude Include="PlayerMyAlgorithmHyper.h" />
+    <ClInclude Include="PlayerNextMax.h" />
+    <ClInclude Include="PlayerNextMin.h" />
+    <ClInclude Include="PlayerNextPointMin.h" />
+    <ClInclude Include="PlayerRandom.h" />
+    <ClInclude Include="PlayerRandomHyper.h" />
+    <ClInclude Include="PlayerRoler.h" />
+    <ClInclude Include="Players.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
