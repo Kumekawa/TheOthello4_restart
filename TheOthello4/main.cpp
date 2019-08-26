@@ -1050,7 +1050,7 @@ class PlayerDeep :public BasePlayer {
 			}
 		}
 
-		auto error = fopen_s(&fp, fname.c_str(), "wb");
+		auto error = fopen_s(&fp, ("_" + fname).c_str(), "wb");
 		if (error == 0) {
 			for (int i = 0; i < MFS_AMOUNT - 4; ++i) {
 				for (int x = 0; x < MFS_XSIZE; ++x) {
@@ -1195,16 +1195,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	//PlayerHuman player1(&field, &turnPlayer, eFC_Black, saveF);
 	//PlayerRandom player1(&field, &turnPlayer, eFC_Black, saveF);
-	//PlayerRoler player1(&field, &turnPlayer, eFC_Black, saveF);
+	PlayerRoler player1(&field, &turnPlayer, eFC_Black, saveF);
 	//PlayerNextMax player1(&field, &turnPlayer, eFC_Black, saveF);
 	//PlayerNextMin player1(&field, &turnPlayer, eFC_Black, saveF);
 	//PlayerMinMax player1(&field, &turnPlayer, eFC_Black, saveF);
 	//PlayerMyAlgorithm player1(&field, &turnPlayer, eFC_Black, saveF);
 	//PlayerMinMaxHyper player1(&field, &turnPlayer, eFC_Black, saveF);
 	//PlayerMyAlgorithmHyper player1(&field, &turnPlayer, eFC_Black, saveF);
-	PlayerDeep player1(&field, &turnPlayer, eFC_Black, saveF);
+	//PlayerDeep player1(&field, &turnPlayer, eFC_Black, saveF);
 
-	PlayerHuman player2(&field, &turnPlayer, eFC_White, saveF);
+	//PlayerHuman player2(&field, &turnPlayer, eFC_White, saveF);
 	//PlayerRandom player2(&field, &turnPlayer, eFC_White, saveF);
 	//PlayerRoler player2(&field, &turnPlayer, eFC_White, saveF);
 	//PlayerNextMax player2(&field, &turnPlayer, eFC_White, saveF);
@@ -1214,12 +1214,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//PlayerRandomHyper player2(&field, &turnPlayer, eFC_White, saveF);
 	//PlayerMyAlgorithmHyper player2(&field, &turnPlayer, eFC_White, saveF);
 	//PlayerNextPointMin player2(&field, &turnPlayer, eFC_White, saveF);
-	//PlayerDeep player2(&field, &turnPlayer, eFC_White, saveF);
+	PlayerDeep player2(&field, &turnPlayer, eFC_White, saveF);
 
 	objects.push_back(&player1);
 	objects.push_back(&player2);
 
 	
+	
+
 
 	for (int i = 0; i < objects.size(); ++i) {
 		objects[i]->Initialize();
@@ -1233,10 +1235,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	while (ProcessMessage() == 0)
 	{
-		if (CheckHitKey(KEY_INPUT_R) && player1.GetEndF() && player2.GetEndF()) {
+		//if (CheckHitKey(KEY_INPUT_R) && player1.GetEndF() && player2.GetEndF()) {
 		//if (CheckHitKey(KEY_INPUT_R) || field.GetEndF() >= 5) {
 		//if (field.GetEndF()) {
-		//if (player1.GetEndF() && player2.GetEndF()) {
+		if (player1.GetEndF() && player2.GetEndF()) {
 
 			switch (field.GetFieldStone().GetMaxColor())
 			{
