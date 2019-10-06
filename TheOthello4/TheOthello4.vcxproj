@@ -131,6 +131,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\..\..\自分で作ったヘッダーたち\KeyInput.cpp" />
     <ClCompile Include="BasePlayer.cpp" />
     <ClCompile Include="Field.cpp" />
     <ClCompile Include="FieldContent.cpp" />
