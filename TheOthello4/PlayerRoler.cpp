@@ -16,7 +16,8 @@ bool PlayerRoler::SetPosition(){
 	return true;
 }
 
-PlayerRoler::PlayerRoler(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF) :BasePlayer(field, turnPlayer, myColor, saveF) {
+PlayerRoler::PlayerRoler(Field* field, eFieldColor myColor, bool saveF) :BasePlayer(field, myColor, saveF) 
+{
 
 }
 

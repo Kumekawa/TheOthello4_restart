@@ -2,7 +2,7 @@
 #include "MacroColor.h"
 #include "Between.h"
 
-PlayerHuman::PlayerHuman(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF) :BasePlayer(field, turnPlayer, myColor, saveF) {
+PlayerHuman::PlayerHuman(Field* field, eFieldColor myColor, bool saveF) :BasePlayer(field, myColor, saveF) {
 
 }
 
@@ -34,6 +34,24 @@ bool PlayerHuman::SetPosition() {
 			}
 		}
 	}
+
+
+	////次に置ける場所に置いた場合の盤面を表示してみる
+	//eFieldColor _turnPlayer = myColor;
+	//Field _field(&_turnPlayer);
+	//int max = -1;
+
+	//_field.SetFieldStone(field->GetFieldStone());
+	//for (int i = 0; i < _field.GetNextStones().size(); ++i) {
+	//	auto ft = _field;
+	//	_turnPlayer = myColor;
+	//	int tx = ft.GetNextStones()[i].x;
+	//	int ty = ft.GetNextStones()[i].y;
+	//	//ここで初回の石配置
+	//	ft.SetStone(tx, ty);
+	//	
+	//	ft.DrawField(MWS_YMAX + 10 + 110 * 1, 10 + 110 * i, 100);
+	//}
 
 
 

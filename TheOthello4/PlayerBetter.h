@@ -9,5 +9,5 @@ class PlayerBetter :public BasePlayer {
 	
 	bool SetPosition() override;
 public:
-	PlayerBetter(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF = true);
+	PlayerBetter(Field* field, eFieldColor myColor, bool saveF = true);
 };

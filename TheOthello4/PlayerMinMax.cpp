@@ -4,7 +4,7 @@
 bool PlayerMinMax::SetPosition() {
 	//‰¼‘zŠÂ‹«‚ðì‚èAŽ©•ª‚ÌŽè”Ô‚ªÅ‘å‚É‚È‚é‚æ‚¤‚É‘I‚Ô
 	eFieldColor _turnPlayer = myColor;
-	Field _field(&_turnPlayer);
+	Field _field(_turnPlayer);
 	int max = -1;
 
 	_field.SetFieldStone(field->GetFieldStone());
@@ -16,10 +16,10 @@ bool PlayerMinMax::SetPosition() {
 		int ty = ft.GetNextStones()[i].y;
 		ft.SetStone(tx, ty);
 		ft.Update();
-		PlayerNextMax Player2(&ft, &_turnPlayer, GetChangeFieldColor(myColor), false);
+		PlayerNextMax Player2(&ft, GetChangeFieldColor(myColor), false);
 		Player2.Update();
 
-		PlayerNextMax Player1(&ft, &_turnPlayer, myColor, false);
+		PlayerNextMax Player1(&ft, myColor, false);
 		Player1.Update();
 		if (max < ft.GetFieldStone().amount[myColor]) {
 			max = ft.GetFieldStone().amount[myColor];
@@ -30,6 +30,6 @@ bool PlayerMinMax::SetPosition() {
 	return true;
 }
 
-PlayerMinMax::PlayerMinMax(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF) :BasePlayer(field, turnPlayer, myColor, saveF) {
+PlayerMinMax::PlayerMinMax(Field* field, eFieldColor myColor, bool saveF) :BasePlayer(field, myColor, saveF) {
 
 }

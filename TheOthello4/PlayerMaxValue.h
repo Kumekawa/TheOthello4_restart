@@ -10,5 +10,5 @@ class PlayerMaxValue :public BasePlayer {
 
 	bool SetPosition() override;
 public:
-	PlayerMaxValue(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, double weight[MFS_AMOUNT - 4][MFS_XSIZE][MFS_YSIZE], bool saveF = true);
+	PlayerMaxValue(Field* field, eFieldColor myColor, double weight[MFS_AMOUNT - 4][MFS_XSIZE][MFS_YSIZE], bool saveF = true);
 };

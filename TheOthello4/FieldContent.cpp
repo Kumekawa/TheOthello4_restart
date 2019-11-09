@@ -1,4 +1,6 @@
 #include "FieldContent.h"
+#include "DxLib.h"
+#include "MacroColor.h"
 
 eFieldColor GetChangeFieldColor(eFieldColor turn) {
 	switch (turn)
@@ -66,4 +68,34 @@ bool fieldstone::GetEquals(fieldstone fieldStone) {
 		}
 	}
 	return true;
+}
+
+//指定された位置に現在のフィールドのみを描画する
+void fieldstone::DrawField(int x, int y, int size) {
+	double r = (double)size / MWS_YMAX;
+	double unitSize = MFS_UNIT * r;
+	DrawBox(x, y, x + size, y + size, MC_GREEN, 1);
+	for (int i = 0; i <= MFS_XSIZE; ++i) {
+		//DrawLineVertical(i * MFS_UNIT, MC_BLACK);
+		DrawLine(i * unitSize + x, y, i * unitSize + x, y + size, MC_BLACK);
+	}
+	for (int j = 0; j <= MFS_YSIZE; ++j) {
+		//DrawLineHorizontal(j * MFS_UNIT, MC_BLACK);
+		DrawLine(x, j * unitSize + y, x + size, j * unitSize + y, MC_BLACK);
+	}
+	for (int i = 0; i < MFS_XSIZE; ++i) {
+		for (int j = 0; j < MFS_YSIZE; ++j) {
+			//DrawStone(i, j, fieldStone);
+			int a = i * unitSize + unitSize / 2 + x;
+			int b = j * unitSize + unitSize / 2 + y;
+			int c = MC_BLACK;
+			if (stone[i][j] != eFC_None) {
+				if (stone[i][j] == eFC_White) {
+					c = MC_WHITE;
+				}
+				DrawCircle(a, b, unitSize / 3, c, 1);
+			}
+		}
+	}
+
 }

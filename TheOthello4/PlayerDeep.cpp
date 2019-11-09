@@ -77,7 +77,7 @@ bool PlayerDeep::SetPosition() {
 		//stones.clear();
 		startF = false;
 	}
-	if (*turnPlayer == myColor) {
+	if (field->GetTurnPlayer() == myColor) {
 
 		auto tf = field->GetNextStones();
 		if (!(tf.size() > 0)) {
@@ -87,8 +87,8 @@ bool PlayerDeep::SetPosition() {
 		bool firstF = true;
 
 		for (int i = 0; i < tf.size(); ++i) {
-			auto _turn = GetChangeFieldColor(*turnPlayer);
-			Field _field(&_turn);
+			auto _turn = GetChangeFieldColor(field->GetTurnPlayer());
+			Field _field(_turn);
 			_field.SetFieldStone(tf[i]);
 
 			BasePlayer* _player1;
@@ -96,8 +96,8 @@ bool PlayerDeep::SetPosition() {
 			bool f = true;
 			//_player1 = new PlayerNextMin(&_field, &_turn, myColor, false);
 			//_player2 = new PlayerNextMin(&_field, &_turn, GetChangeFieldColor(myColor), false);
-			_player1 = new PlayerMaxValue(&_field, &_turn, myColor, w, false);
-			_player2 = new PlayerMaxValue(&_field, &_turn, GetChangeFieldColor(myColor), w, false);
+			_player1 = new PlayerMaxValue(&_field, myColor, w, false);
+			_player2 = new PlayerMaxValue(&_field, GetChangeFieldColor(myColor), w, false);
 			vector<BaseClass*> _objects;
 			_objects.push_back(&_field);
 			_objects.push_back(_player1);
@@ -141,7 +141,7 @@ bool PlayerDeep::SetPosition() {
 	return true;
 }
 
-PlayerDeep::PlayerDeep(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF) :BasePlayer(field, turnPlayer, myColor, saveF) {
+PlayerDeep::PlayerDeep(Field* field,  eFieldColor myColor, bool saveF) :BasePlayer(field,myColor, saveF) {
 	if (myColor == eFC_Black) {
 		fname = "Black";
 	}

@@ -5,5 +5,5 @@
 class PlayerMinMaxHyper :public BasePlayer {
 	bool SetPosition() override;
 public:
-	PlayerMinMaxHyper(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF = true);
+	PlayerMinMaxHyper(Field* field, eFieldColor myColor, bool saveF = true);
 };

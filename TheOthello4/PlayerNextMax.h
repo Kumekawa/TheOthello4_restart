@@ -6,5 +6,5 @@ class PlayerNextMax :public BasePlayer {
 	vector<fieldstone> nextStones;
 	bool SetPosition() override;
 public:
-	PlayerNextMax(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF = true);
+	PlayerNextMax(Field* field, eFieldColor myColor, bool saveF = true);
 };

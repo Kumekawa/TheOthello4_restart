@@ -131,6 +131,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\..\..\自分で作ったヘッダーたち\KeyInput.cpp" />
     <ClCompile Include="BasePlayer.cpp" />
     <ClCompile Include="Field.cpp" />
     <ClCompile Include="FieldContent.cpp" />
@@ -140,6 +141,7 @@
     <ClCompile Include="PlayerHuman.cpp" />
     <ClCompile Include="PlayerMaxValue.cpp" />
     <ClCompile Include="PlayerMinMax.cpp" />
+    <ClCompile Include="PlayerMinMaxFromBooks.cpp" />
     <ClCompile Include="PlayerMinMaxHyper.cpp" />
     <ClCompile Include="PlayerMyalgorithm.cpp" />
     <ClCompile Include="PlayerMyAlgorithmHyper.cpp" />
@@ -162,6 +164,7 @@
     <ClInclude Include="PlayerHuman.h" />
     <ClInclude Include="PlayerMaxValue.h" />
     <ClInclude Include="PlayerMinMax.h" />
+    <ClInclude Include="PlayerMinMaxFromBooks.h" />
     <ClInclude Include="PlayerMinMaxHyper.h" />
     <ClInclude Include="PlayerMyalgorithm.h" />
     <ClInclude Include="PlayerMyAlgorithmHyper.h" />

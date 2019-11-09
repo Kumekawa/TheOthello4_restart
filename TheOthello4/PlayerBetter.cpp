@@ -18,6 +18,6 @@ bool PlayerBetter::SetPosition() {
 	return 0;
 }
 
-PlayerBetter::PlayerBetter(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF) :BasePlayer(field, turnPlayer, myColor, saveF) {
+PlayerBetter::PlayerBetter(Field* field, eFieldColor myColor, bool saveF) :BasePlayer(field, myColor, saveF) {
 
 }

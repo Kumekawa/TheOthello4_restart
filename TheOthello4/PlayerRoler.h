@@ -5,5 +5,5 @@
 class PlayerRoler :public BasePlayer {
 	bool SetPosition() override;
 public:
-	PlayerRoler(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF = true);
+	PlayerRoler(Field* field, eFieldColor myColor, bool saveF = true);
 };
