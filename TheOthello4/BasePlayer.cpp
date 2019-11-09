@@ -2,9 +2,8 @@
 #include "MacroColor.h"
 #include <fstream>
 
-BasePlayer::BasePlayer(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF) {
+BasePlayer::BasePlayer(Field* field, eFieldColor myColor, bool saveF) {
 	this->field = field;
-	this->turnPlayer = turnPlayer;
 	this->myColor = myColor;
 	if (myColor == eFC_Black) {
 		myDrawColor = MC_BLACK;
@@ -53,7 +52,7 @@ void BasePlayer::Update(){
 		endF = true;
 	}
 	if (SetPosition()) {
-		if (*turnPlayer == myColor) {
+		if (field->GetTurnPlayer() == myColor) {
 			field->SetStone(fx, fy);
 			if (saveF) {
 				saveField.push_back(field->GetFieldStone());
@@ -115,7 +114,7 @@ void BasePlayer::Update(){
 	}
 }
 void BasePlayer::Draw(){
-	if (*turnPlayer == myColor && field->GetNextStones().size() > 0) {
+	if (field->GetTurnPlayer() == myColor && field->GetNextStones().size() > 0) {
 		int tx = fx * MFS_UNIT + MFS_UNIT / 2;
 		int ty = fy * MFS_UNIT + MFS_UNIT / 2;
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);

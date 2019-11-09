@@ -9,7 +9,7 @@ class Field :public BaseClass {
 	vector<fieldstone> nextStones;
 	//‚±‚±‚Ü‚Å‚Ì”Õ–Ê‚ð‹L‰¯‚µ‚Ä‚¨‚­
 	vector<fieldstone> history;
-	eFieldColor* turnPlayer;
+	eFieldColor turnPlayer;
 	int endCounter;
 	bool endF;
 	int elapsedTurn;
@@ -22,7 +22,7 @@ class Field :public BaseClass {
 	bool SetNextStone();
 
 public:
-	Field(eFieldColor* turnPlayer);
+	Field(eFieldColor turnPlayer);
 
 	void Initialize()override;
 
@@ -41,4 +41,5 @@ public:
 	int GetEndCounter();
 	bool GetEndF();
 	vector<fieldstone> GetHistory();
+	eFieldColor GetTurnPlayer();
 };

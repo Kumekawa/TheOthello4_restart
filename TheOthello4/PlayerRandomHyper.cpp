@@ -4,7 +4,7 @@
 bool PlayerRandomHyper::SetPosition() {
 	//仮想環境を作り、自分の手番が最大になるように選ぶ
 	eFieldColor _turnPlayer = myColor;
-	Field _field(&_turnPlayer);
+	Field _field(_turnPlayer);
 	int max = -1;
 
 	_field.SetFieldStone(field->GetFieldStone());
@@ -23,8 +23,8 @@ bool PlayerRandomHyper::SetPosition() {
 
 			//ここで初回の石配置
 			ft.SetStone(tx, ty);
-			PlayerRandom Player2(&ft, &_turnPlayer, GetChangeFieldColor(myColor), false);
-			PlayerRandom Player1(&ft, &_turnPlayer, myColor, false);
+			PlayerRandom Player2(&ft,  GetChangeFieldColor(myColor), false);
+			PlayerRandom Player1(&ft,  myColor, false);
 
 			while (ft.GetEndF() == 0) {
 				ft.Update();
@@ -42,6 +42,6 @@ bool PlayerRandomHyper::SetPosition() {
 	return true;
 }
 
-PlayerRandomHyper::PlayerRandomHyper(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF) :BasePlayer(field, turnPlayer, myColor, saveF) {
+PlayerRandomHyper::PlayerRandomHyper(Field* field, eFieldColor myColor, bool saveF) :BasePlayer(field, myColor, saveF) {
 
 }

@@ -1,6 +1,6 @@
 #include "PlayerNextMin.h"
 
-PlayerNextMin::PlayerNextMin(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF):BasePlayer(field,turnPlayer,myColor,saveF){
+PlayerNextMin::PlayerNextMin(Field* field, eFieldColor myColor, bool saveF):BasePlayer(field,myColor,saveF){
 
 }
 

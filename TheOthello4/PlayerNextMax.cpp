@@ -16,6 +16,6 @@ bool PlayerNextMax::SetPosition() {
 	}
 	return false;
 }
-PlayerNextMax::PlayerNextMax(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF) :BasePlayer(field, turnPlayer, myColor, saveF) {
+PlayerNextMax::PlayerNextMax(Field* field, eFieldColor myColor, bool saveF) :BasePlayer(field, myColor, saveF) {
 
 }

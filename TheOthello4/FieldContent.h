@@ -4,8 +4,8 @@
 #include <sstream>
 using namespace std;
 
-constexpr int MFS_XSIZE = 8;
-constexpr int MFS_YSIZE = 8;
+constexpr int MFS_XSIZE = 4;
+constexpr int MFS_YSIZE = 4;
 constexpr int MFS_WIDTH = MWS_YMAX;
 constexpr int MFS_HEIGHT = MWS_YMAX;
 constexpr int MFS_UNIT = MFS_WIDTH / MFS_XSIZE;
@@ -35,4 +35,6 @@ struct fieldstone {
 	string GetString();
 
 	bool GetEquals(fieldstone fieldStone);
+	void DrawField(int x, int y, int size);
+
 };

@@ -4,5 +4,5 @@
 class PlayerMyAlgorithm :public BasePlayer {
 	bool SetPosition() override;
 public:
-	PlayerMyAlgorithm(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF = true);
+	PlayerMyAlgorithm(Field* field, eFieldColor myColor, bool saveF = true);
 };
