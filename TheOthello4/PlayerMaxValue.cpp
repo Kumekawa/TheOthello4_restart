@@ -39,7 +39,7 @@ bool PlayerMaxValue::SetPosition() {
 	return true;
 }
 
-PlayerMaxValue::PlayerMaxValue(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, double weight[MFS_AMOUNT - 4][MFS_XSIZE][MFS_YSIZE], bool saveF) :BasePlayer(field, turnPlayer, myColor, saveF) {
+PlayerMaxValue::PlayerMaxValue(Field* field, eFieldColor myColor, double weight[MFS_AMOUNT - 4][MFS_XSIZE][MFS_YSIZE], bool saveF) :BasePlayer(field, myColor, saveF) {
 	for (int i = 0; i < MFS_AMOUNT - 4; ++i) {
 		for (int x = 0; x < MFS_XSIZE; ++x) {
 			for (int y = 0; y < MFS_YSIZE; ++y) {

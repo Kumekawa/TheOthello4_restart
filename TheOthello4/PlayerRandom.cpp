@@ -12,6 +12,6 @@ bool PlayerRandom::SetPosition(){
 	return false;
 }
 
-PlayerRandom::PlayerRandom(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF) :BasePlayer(field, turnPlayer, myColor, saveF) {
+PlayerRandom::PlayerRandom(Field* field, eFieldColor myColor, bool saveF) :BasePlayer(field, myColor, saveF) {
 
 }

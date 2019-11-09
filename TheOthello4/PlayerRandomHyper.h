@@ -5,5 +5,5 @@
 class PlayerRandomHyper :public BasePlayer {
 	bool SetPosition() override;
 public:
-	PlayerRandomHyper(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF = true);
+	PlayerRandomHyper(Field* field, eFieldColor myColor, bool saveF = true);
 };

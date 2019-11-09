@@ -4,7 +4,7 @@
 bool PlayerMinMaxHyper::SetPosition() {
 	//仮想環境を作り、自分の手番が最大になるように選ぶ
 	eFieldColor _turnPlayer = myColor;
-	Field _field(&_turnPlayer);
+	Field _field(_turnPlayer);
 	int max = -1;
 
 	_field.SetFieldStone(field->GetFieldStone());
@@ -16,8 +16,8 @@ bool PlayerMinMaxHyper::SetPosition() {
 		int ty = ft.GetNextStones()[i].y;
 		//ここで初回の石配置
 		ft.SetStone(tx, ty);
-		PlayerNextMax Player2(&ft, &_turnPlayer, GetChangeFieldColor(myColor), false);
-		PlayerNextMax Player1(&ft, &_turnPlayer, myColor, false);
+		PlayerNextMax Player2(&ft, GetChangeFieldColor(myColor), false);
+		PlayerNextMax Player1(&ft, myColor, false);
 
 		//終了するまで殴り合い
 		while (ft.GetEndF() != true) {
@@ -34,6 +34,6 @@ bool PlayerMinMaxHyper::SetPosition() {
 	return true;
 }
 
-PlayerMinMaxHyper::PlayerMinMaxHyper(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF) :BasePlayer(field, turnPlayer, myColor, saveF) {
+PlayerMinMaxHyper::PlayerMinMaxHyper(Field* field, eFieldColor myColor, bool saveF) :BasePlayer(field, myColor, saveF) {
 
 }

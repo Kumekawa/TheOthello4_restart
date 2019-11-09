@@ -38,6 +38,6 @@ bool PlayerMyAlgorithm::SetPosition() {
 	return true;
 }
 
-PlayerMyAlgorithm::PlayerMyAlgorithm(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF) :BasePlayer(field, turnPlayer, myColor, saveF) {
+PlayerMyAlgorithm::PlayerMyAlgorithm(Field* field, eFieldColor myColor, bool saveF) :BasePlayer(field, myColor, saveF) {
 
 }

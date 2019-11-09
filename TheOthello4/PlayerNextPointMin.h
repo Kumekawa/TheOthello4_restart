@@ -5,5 +5,5 @@
 class PlayerNextPointMin :public BasePlayer {
 	bool SetPosition() override;
 public:
-	PlayerNextPointMin(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF = true);
+	PlayerNextPointMin(Field* field, eFieldColor myColor, bool saveF = true);
 };

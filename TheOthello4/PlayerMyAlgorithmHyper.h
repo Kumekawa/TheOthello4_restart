@@ -6,5 +6,5 @@
 class PlayerMyAlgorithmHyper :public BasePlayer {
 	bool SetPosition() override;
 public:
-	PlayerMyAlgorithmHyper(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF = true);
+	PlayerMyAlgorithmHyper(Field* field, eFieldColor myColor, bool saveF = true);
 };

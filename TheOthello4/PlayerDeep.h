@@ -15,5 +15,5 @@ class PlayerDeep :public BasePlayer {
 
 	bool SetPosition() override;
 public:
-	PlayerDeep(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF = true);
+	PlayerDeep(Field* field, eFieldColor myColor, bool saveF = true);
 };

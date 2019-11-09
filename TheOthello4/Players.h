@@ -13,7 +13,8 @@ enum eplayer {
 	eRandomHyper,
 	eMyAlgorithmHyper,
 	eNextPointMin,
-	eDeep
+	eDeep,
+	eMinMaxFromBooks
 };
 
-BasePlayer *SelectPlayer(eplayer ePlayer,Field *field,eFieldColor *turnPlayer,eFieldColor myColor,bool saveF);
+BasePlayer *SelectPlayer(eplayer ePlayer,Field *field,eFieldColor myColor,bool saveF);

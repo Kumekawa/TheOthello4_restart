@@ -6,7 +6,6 @@
 class BasePlayer :public BaseClass {
 protected:
 	Field* field;
-	eFieldColor* turnPlayer;
 	eFieldColor myColor;
 	int myDrawColor;
 	int fx, fy;
@@ -26,7 +25,7 @@ protected:
 	//実際に置くタイミングでは返り値をtrueにする。
 	virtual bool SetPosition() = 0;
 public:
-	BasePlayer(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF);
+	BasePlayer(Field* field, eFieldColor myColor, bool saveF);
 	void Initialize() override;
 	void Update()override;
 	void Draw() override;

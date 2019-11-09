@@ -3,7 +3,7 @@
 bool PlayerNextPointMin::SetPosition() {
 	//‰¼‘zŠÂ‹«‚ðì‚èA‘ŠŽè‚ÌŽè”‚ªÅ¬‚É‚È‚é‚æ‚¤‚É‘I‚Ô
 	eFieldColor _turnPlayer = myColor;
-	Field _field(&_turnPlayer);
+	Field _field(_turnPlayer);
 	int min = -1;
 
 	_field.SetFieldStone(field->GetFieldStone());
@@ -27,6 +27,6 @@ bool PlayerNextPointMin::SetPosition() {
 	return true;
 }
 
-PlayerNextPointMin::PlayerNextPointMin(Field* field, eFieldColor* turnPlayer, eFieldColor myColor, bool saveF) :BasePlayer(field, turnPlayer, myColor, saveF) {
+PlayerNextPointMin::PlayerNextPointMin(Field* field, eFieldColor myColor, bool saveF) :BasePlayer(field, myColor, saveF) {
 
 }

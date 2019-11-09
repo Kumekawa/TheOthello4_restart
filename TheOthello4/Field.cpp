@@ -44,12 +44,12 @@ bool Field::SetNextStonePoint(fieldstone* s, int x, int y){
 					break;
 				}
 				//ターンプレイヤーの石があったら、そこまでに非ターンプレイヤーの石があれば色を変えて終了
-				if (s->stone[m][n] == *turnPlayer) {
+				if (s->stone[m][n] == turnPlayer) {
 					if (k > 1) {
 						for (; k >= 0; --k) {
 							int a = x + i * k;
 							int b = y + j * k;
-							s->stone[a][b] = *turnPlayer;
+							s->stone[a][b] = turnPlayer;
 						}
 						putF = true;
 					}
@@ -68,7 +68,7 @@ bool Field::SetNextStone(){
 	int n = 0;
 	do {
 		if (n > 0) {
-			ChangeFieldColor(turnPlayer);
+			ChangeFieldColor(&turnPlayer);
 		}
 		for (int i = 0; i < MFS_XSIZE; ++i) {
 			for (int j = 0; j < MFS_YSIZE; ++j) {
@@ -89,7 +89,7 @@ bool Field::SetNextStone(){
 	return true;
 }
 
-Field::Field(eFieldColor* turnPlayer){
+Field::Field(eFieldColor turnPlayer){
 	this->turnPlayer = turnPlayer;
 	Initialize();
 }
@@ -107,6 +107,7 @@ void Field::Initialize() {
 	fieldStone.stone[tx][ty] = eFC_Black;
 	fieldStone.stone[tx - 1][ty] = eFC_White;
 	fieldStone.stone[tx][ty - 1] = eFC_White;
+	turnPlayer = eFC_Black;
 	SetNextStone();
 	endCounter = 0;
 	endF = false;
@@ -137,7 +138,7 @@ void Field::Draw() {
 
 	int b = fieldStone.amount[eFC_Black];
 	int w = fieldStone.amount[eFC_White];
-	DrawFormatString(MFS_WIDTH, 0, MC_WHITE, "\n\nblack:%d\nwhite%d\nturn:%d\nPlayer:%s", b, w, elapsedTurn, *turnPlayer == eFC_Black ? "black" : "white");
+	DrawFormatString(MFS_WIDTH, 0, MC_WHITE, "\n\nblack:%d\nwhite%d\nturn:%d\nPlayer:%s", b, w, elapsedTurn, GetTurnPlayer() == eFC_Black ? "black" : "white");
 	if (endCounter > 0) {
 		int t = b - w;
 		string s;
@@ -160,13 +161,14 @@ void Field::Draw() {
 	}
 }
 
+
 void Field::SetStone(int x, int y) {
 	for (int i = 0; i < nextStones.size(); ++i) {
 		fieldstone f = nextStones[i];
 		if (f.x == x && f.y == y) {
 			//ここにきていれば次の盤面がある
 			fieldStone = f;
-			ChangeFieldColor(turnPlayer);
+			ChangeFieldColor(&turnPlayer);
 			if (SetNextStone() == false) {
 				endCounter++;
 			}
@@ -203,4 +205,9 @@ bool Field::GetEndF() {
 }
 vector<fieldstone> Field::GetHistory() {
 	return history;
+}
+
+eFieldColor Field::GetTurnPlayer()
+{
+	return turnPlayer;
 }
