@@ -17,8 +17,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	SetWindowSizeChangeEnableFlag(FALSE, FALSE); //ユーザー側のウィンドウサイズ変更不可
 	SetAlwaysRunFlag(TRUE); //最前面にない時も動作
-	SetGraphMode(MWS_XMAX, MWS_YMAX, 32); //ウィンドウの最大サイズ指定
-	SetWindowSize(MWS_XMAX, MWS_YMAX); //ウィンドウのサイズ指定
+	SetGraphMode(MWS_XMAX_WINDOW, MWS_YMAX_WINDOW, 32); //ウィンドウの最大サイズ指定
+	SetWindowSize(MWS_XMAX_WINDOW, MWS_YMAX_WINDOW); //ウィンドウのサイズ指定
 
 	//DxLibの初期化処理
 	if (DxLib_Init() == -1)
@@ -28,19 +28,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	//描画画面を裏に
 	SetDrawScreen(DX_SCREEN_BACK);
 
-	eFieldColor turnPlayer = eFC_Black;
+	//eFieldColor turnPlayer = eFC_Black;
 
 	vector<BaseClass*> objects;
-	Field field(&turnPlayer);
+	Field field(eFC_Black);
 	objects.push_back(&field);
 
 	bool saveF = false;
 
 	BasePlayer* player1;
-	player1 = SelectPlayer(eRoler, &field, &turnPlayer, eFC_Black, saveF);
+	player1 = SelectPlayer(eplayer::eMinMaxFromBooks, &field,  eFC_Black, saveF);
 
 	BasePlayer* player2;
-	player2 = SelectPlayer(eDeep, &field, &turnPlayer, eFC_White, saveF);
+	player2 = SelectPlayer(eplayer::eHuman, &field, eFC_White, saveF);
 
 
 	objects.push_back(player1);
@@ -59,10 +59,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	while (ProcessMessage() == 0)
 	{
-		//if (CheckHitKey(KEY_INPUT_R) && player1.GetEndF() && player2.GetEndF()) {
+		if (CheckHitKey(KEY_INPUT_R) && player1->GetEndF() && player2->GetEndF()) {
 		//if (CheckHitKey(KEY_INPUT_R) || field.GetEndF() >= 5) {
 		//if (field.GetEndF()) {
-		if (player1->GetEndF() && player2->GetEndF()) {
+		//if (player1->GetEndF() && player2->GetEndF()) {
 
 			switch (field.GetFieldStone().GetMaxColor())
 			{
@@ -79,7 +79,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				break;
 			}
 
-			turnPlayer = eFC_Black;
+			
 			for (int i = 0; i < objects.size(); ++i) {
 				objects[i]->Initialize();
 			}
@@ -89,7 +89,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			objects[i]->Draw();
 		}
 
-		DrawFormatString(MFS_WIDTH, MFS_HEIGHT / 2, MC_WHITE, "黒勝ち:%d\n白勝ち:%d\n引き分け:%d", b, w, d);
+		//DrawFormatString(MFS_WIDTH, MFS_HEIGHT / 2, MC_WHITE, "黒勝ち:%d\n白勝ち:%d\n引き分け:%d", b, w, d);
 		if (DxLibEndEffect(true)) {
 			break;
 		}
